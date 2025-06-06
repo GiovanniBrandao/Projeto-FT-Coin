@@ -1,0 +1,18 @@
+
+
+Compilação
+
+O programa conta com um arquivo "cmake" que facilita a compitação. As opções diponíveis para o programa são;
+
+criar uma pasta de build:
+mkdir build && cd build
+
+gerar um arquivo de compilação
+cmake ..
+
+compilar o programa
+make
+
+executar o programa
+/.carteira_virtual
+
