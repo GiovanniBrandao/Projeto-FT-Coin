@@ -93,7 +93,87 @@ void carteira::ChecarCarteiraLocal()
    file.close();
 }
 
-void carteira::EditarCarteiraLocal() {}
+void carteira::EditarCarteiraLocal() {
+
+int idAlvo;
+int idLido;
+   cout << "Digite o ID da carteira que deseja editar: ";
+   cin >> idAlvo;
+
+   ifstream entrada("carteira.txt");
+   ofstream saida("temp.txt");
+
+   if (!entrada || !saida)
+   {
+      cerr << "Erro ao abrir os arquivos" << endl;
+      return;
+   }
+
+   string linha;
+   bool dentroDoBloco = false;
+   bool editarBloco = false;
+
+   string novoNome, novaMoeda;
+   double novoSaldo;
+
+   while (getline(entrada, linha))
+   {
+      if (linha.find("ID: ") != string::npos) //procura ID até ser verdadeiro
+      {
+         //pega substring da poção 4 da linha até seu fim. assim pega o ID inteiro
+         //transforma ID em inteiro
+         idLido = stoi(linha.substr(4)); 
+         if (idLido == idAlvo)
+         {
+            editarBloco = true;
+            dentroDoBloco = true;
+
+            cout << "Novo nome do titular: ";
+            cin.ignore(); // limpa o buffer antes de getline
+            getline(cin, novoNome);
+
+            cout << "Novo saldo: ";
+            cin >> novoSaldo;
+
+            saida << linha << endl; // escreve a linha "ID: ..."
+
+            saida << "Nome: " << novoNome << endl;
+            saida << "Fundos: " << novoSaldo << endl;
+            continue; // pula as linhas seguintes desse bloco
+         }
+         else
+         {
+            editarBloco = false;
+            dentroDoBloco = true;
+         }
+      }
+
+      if (linha == "----------------------------------")
+      {
+         dentroDoBloco = false;
+         saida << linha << endl;
+         continue;
+      }
+
+      if (!editarBloco || !dentroDoBloco)
+      {
+         saida << linha << endl;
+      }
+   }
+
+   entrada.close();
+   saida.close();
+
+   remove("carteira.txt");
+   rename("temp.txt", "carteira.txt");
+
+   if (editarBloco)
+      cout << "Carteira editada com sucesso!" << endl;
+   else
+      cout << "Carteira com ID " << idAlvo << " não encontrada." << endl;
+
+
+}
 
 void carteira::ExcluirCarteiraLocal()
 {
