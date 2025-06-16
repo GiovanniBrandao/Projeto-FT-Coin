@@ -16,3 +16,4 @@ make
 executar o programa
 /.carteira_virtual
 
+g++ carteira.cpp interface.cpp main.cpp movimentacao.cpp -o teste

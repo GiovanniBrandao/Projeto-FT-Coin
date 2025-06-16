@@ -4,6 +4,8 @@
 
 class oraculo {
 
+public:
+
 int dia = 01;
 int mes = 06;
 int ano = 2025;

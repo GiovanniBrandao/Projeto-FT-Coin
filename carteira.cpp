@@ -37,10 +37,15 @@ void carteira::NovaCarteiraLocal()
    escrita << "----------------------------------" << endl;
    escrita << "ID: " << ID_carteira << endl;
    escrita << "Nome: " << nome_titular << endl;
-   escrita << "Fundos: " << saldo << endl;
+   escrita << "Dinheiro real R$: " << saldo << endl;
+   escrita << "Criptomoeda: " << cripto << endl;
    escrita << "Moeda: " << moeda << endl;
 
    escrita.close();
+
+   cout << endl;
+   cout << "Carteira com ID: " << ID_carteira << " criada" << endl;
+   cout << endl;
 }
 
 void carteira::ChecarCarteiraLocal()

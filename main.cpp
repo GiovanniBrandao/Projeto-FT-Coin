@@ -1,5 +1,7 @@
 #include "interface.hpp"
 #include "carteira.hpp"
+#include "oraculo.hpp"
+#include "movimentacao.hpp"
 
 #include <iostream>
 
@@ -11,104 +13,119 @@ int main()
     if (MenuGravacao() == 1)
     {
 
-    int opcaoPrincipal = -1;
+        int opcaoPrincipal = -1;
 
-    while (opcaoPrincipal != 0)
-    {
-        opcaoPrincipal = MenuPrincipal();
-
-        switch (opcaoPrincipal)
+        while (opcaoPrincipal != 0)
         {
-        case 1:
-        {
-            int opcaoCarteira = -1;
-            carteira c;
+            opcaoPrincipal = MenuPrincipal();
 
-            while (opcaoCarteira != 0)
+            switch (opcaoPrincipal)
             {
-                opcaoCarteira = MenuCarteira();
+            case 1:
+            {
+                int opcaoCarteira = -1;
+                carteira cart;
 
-                switch (opcaoCarteira)
+                while (opcaoCarteira != 0)
                 {
-                case 1:
-                    int n;
-                    cout << "Quantas carteiras deseja registrar? ";
-                    cin >> n;
+                    opcaoCarteira = MenuCarteira();
 
-                    for (int i = 0; i < n; ++i)
+                    switch (opcaoCarteira)
                     {
+                    case 1:
+                        int n;
+                        cout << "Quantas carteiras deseja registrar? ";
+                        cin >> n;
 
-                        cout << "Nome do titular: ";
-                        cin >> c.nome_titular;
+                        for (int i = 0; i < n; ++i)
+                        {
 
-                        c.NovaCarteiraLocal();
+                            cout << "Nome do titular: ";
+                            cin >> cart.nome_titular;
+
+                            cart.NovaCarteiraLocal();
+                        }
+                        break;
+                    case 2:
+                        cart.ChecarCarteiraLocal();
+                        break;
+                    case 3:
+                        cart.EditarCarteiraLocal();
+                        break;
+                    case 4:
+                        cart.ExcluirCarteiraLocal();
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        cout << "Opcao invalida." << endl;
                     }
-                    break;
-                case 2:
-                    c.ChecarCarteiraLocal();
-                    break;
-                case 3:
-                    c.EditarCarteiraLocal();
-                    break;
-                case 4:
-                    c.ExcluirCarteiraLocal();
-                    break;
-                case 0:
-                    break;
-                default:
-                    cout << "Opcao invalida." << endl;
                 }
+                break;
             }
-            break;
-        }
 
-        case 2:
-        {
-            int opcaoMov = -1;
-            while (opcaoMov != 0)
+            case 2:
             {
-                opcaoMov = MenuMovimentacao();
-                // Adicione as chamadas de funções aqui
-            }
-            break;
-        }
+                int opcaoMov = -1;
+                movimentacao mov;
 
-        case 3:
-        {
-            int opcaoRel = -1;
-            while (opcaoRel != 0)
+                while (opcaoMov != 0)
+                {
+
+                    opcaoMov = MenuMovimentacao();
+
+                    switch (opcaoMov)
+                    {
+                    case 1:
+                        mov.compra();
+                        break;
+                    case 2:
+                        mov.venda();
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        cout << "Opcao invalida." << endl;
+                    }
+                }
+                break;
+            }
+
+            case 3:
             {
-                opcaoRel = MenuRelatorios();
-                // Adicione as chamadas de funções aqui
+                int opcaoRel = -1;
+                while (opcaoRel != 0)
+                {
+                    opcaoRel = MenuRelatorios();
+                    // Adicione as chamadas de funções aqui
+                }
+                break;
             }
-            break;
-        }
 
-        case 4:
-        {
-            int opcaoAjuda = -1;
-            while (opcaoAjuda != 0)
+            case 4:
             {
-                opcaoAjuda = MenuAjuda();
-                // Adicione ações aqui se quiser
+                int opcaoAjuda = -1;
+                while (opcaoAjuda != 0)
+                {
+                    opcaoAjuda = MenuAjuda();
+                    // Adicione ações aqui se quiser
+                }
+                break;
             }
-            break;
-        }
 
-        case 0:
-            cout << "Saindo..." << endl;
-            break;
+            case 0:
+                cout << "Saindo..." << endl;
+                break;
 
-        default:
-            cout << "Opcao invalida, tente novamente." << endl;
+            default:
+                cout << "Opcao invalida, tente novamente." << endl;
+            }
         }
     }
-
-} else if (MenuGravacao() == 2)
-{
-    //gravação remota
-}
-
+    else if (MenuGravacao() == 2)
+    {
+        // gravação remota
+    }
 
     return 0;
 }
