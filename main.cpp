@@ -177,10 +177,10 @@ int main()
                     switch (opcaoMov)
                     {
                     case 1:
-                        //mov.compraRemota();
+                        mov.compraRemota();
                         break;
                     case 2:
-                        //mov.vendaRemota();
+                        mov.vendaRemota();
                         break;
                     case 0:
                         break;

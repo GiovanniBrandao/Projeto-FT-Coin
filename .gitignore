@@ -1,0 +1,8 @@
+# arquivos gerados pelo programa
+
+*.txt
+*.exe
+
+# arquivos do vscode
+
+.vscode/

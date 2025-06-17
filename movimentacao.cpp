@@ -4,6 +4,13 @@
 #include <fstream>
 #include <ctime>
 #include <iomanip>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+#include <cppconn/exception.h>
+
 
 using namespace std;
 
@@ -143,8 +150,125 @@ void movimentacao::vendaLocal()
 
 void movimentacao::compraRemota()
 {
+int idCarteira;
+    double valorReais;
+
+    cout << "Digite o ID da carteira que deseja comprar: ";
+    cin >> idCarteira;
+
+    try {
+        sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+        std::unique_ptr<sql::Connection> con(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
+        con->setSchema("PooI_25_Yxx");
+
+        // Verifica se carteira existe
+        std::unique_ptr<sql::PreparedStatement> pstmt(con->prepareStatement(
+            "SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
+        pstmt->setInt(1, idCarteira);
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+
+        res->next();
+        if (res->getInt("total") == 0) {
+            cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
+            return;
+        }
+
+        // Pega cotação mais recente
+        pstmt.reset(con->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1"));
+        res.reset(pstmt->executeQuery());
+
+        double cotacao = 0;
+        if (res->next()) {
+            cotacao = res->getDouble("Cotacao");
+        } else {
+            cout << "Erro: Nenhuma cotação disponível no oráculo." << endl;
+            return;
+        }
+
+        cout << "Cotação atual da FT Coin: R$ " << cotacao << endl;
+        cout << "Digite quanto deseja gastar em reais: R$ ";
+        cin >> valorReais;
+
+        if (valorReais <= 0) {
+            cout << "Valor inválido. Compra cancelada." << endl;
+            return;
+        }
+
+        double quantidade = valorReais / cotacao;
+
+        // Registra a movimentação de compra
+        pstmt.reset(con->prepareStatement(
+            "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) VALUES (?, CURDATE(), 'C', ?)"));
+        pstmt->setInt(1, idCarteira);
+        pstmt->setDouble(2, quantidade);
+        pstmt->executeUpdate();
+
+        cout << "Compra registrada com sucesso!" << endl;
+        cout << "Você comprou " << quantidade << " FT Coins por R$ " << valorReais << endl;
+
+    } catch (sql::SQLException& e) {
+        cerr << "Erro ao registrar compra: " << e.what() << endl;
+    }
 }
 
 void movimentacao::vendaRemota()
 {
+int idCarteira;
+    double quantidade;
+
+    cout << "Digite o ID da carteira que deseja vender: ";
+    cin >> idCarteira;
+
+    // Conecta ao banco
+    try {
+        sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+        std::unique_ptr<sql::Connection> con(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
+        con->setSchema("PooI_25_Yxx");
+
+        // Verifica se carteira existe
+        std::unique_ptr<sql::PreparedStatement> pstmt(con->prepareStatement(
+            "SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
+        pstmt->setInt(1, idCarteira);
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+
+        res->next();
+        if (res->getInt("total") == 0) {
+            cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
+            return;
+        }
+
+        // Obtém a cotação mais recente
+        pstmt.reset(con->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1"));
+        res.reset(pstmt->executeQuery());
+
+        double cotacao = 0;
+        if (res->next()) {
+            cotacao = res->getDouble("Cotacao");
+        } else {
+            cout << "Erro: Nenhuma cotação disponível no oráculo." << endl;
+            return;
+        }
+
+        cout << "Cotação atual da FT Coin: R$ " << cotacao << endl;
+        cout << "Digite quantas FT Coins deseja vender: ";
+        cin >> quantidade;
+
+        if (quantidade <= 0) {
+            cout << "Quantidade inválida. Venda cancelada." << endl;
+            return;
+        }
+
+        // Registra a movimentação de venda
+        pstmt.reset(con->prepareStatement(
+            "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) VALUES (?, CURDATE(), 'V', ?)"));
+        pstmt->setInt(1, idCarteira);
+        pstmt->setDouble(2, quantidade);
+        pstmt->executeUpdate();
+
+        cout << "Venda registrada com sucesso!" << endl;
+        cout << "Você vendeu " << quantidade << " FT Coins a R$ " << cotacao << " cada." << endl;
+
+    } catch (sql::SQLException& e) {
+        cerr << "Erro ao registrar venda: " << e.what() << endl;
+    }
 }
