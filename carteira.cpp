@@ -2,18 +2,20 @@
 
 #include <fstream>
 #include <iostream>
-#include <mysql_driver.h>
+#include <memory>
+/*#include <mysql_driver.h>
 #include <mysql_connection.h>
 #include <cppconn/driver.h>
 #include <cppconn/connection.h>
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
-#include <cppconn/resultset.h>
+#include <cppconn/resultset.h>*/
 
-void carteira::NovaCarteiraLocal()
+using namespace std;
+
+void CarteiraDAO_Local::criarCarteira(const Carteira &carteira)
 {
 
-   // abre em modo leitura para descobrir o último ID
    ifstream leitura("carteira.txt");
    int ID_carteira = 0;
    string linha;
@@ -42,9 +44,9 @@ void carteira::NovaCarteiraLocal()
 
    escrita << "----------------------------------" << endl;
    escrita << "ID: " << ID_carteira << endl;
-   escrita << "Nome: " << nome_titular << endl;
-   escrita << "Corretora: " << corretora << endl;
-   escrita << "Moeda: " << moeda << endl;
+   escrita << "Nome: " << carteira.getTitular() << endl;
+   escrita << "Corretora: " << carteira.getCorretora() << endl;
+   escrita << "Moeda: " << carteira.getMoeda() << endl;
 
    escrita.close();
 
@@ -53,36 +55,33 @@ void carteira::NovaCarteiraLocal()
    cout << endl;
 }
 
-void carteira::ChecarCarteiraLocal()
+Carteira consultarCarteira(int id)
 {
 
-   ifstream file("carteira.txt");
-
+   std::ifstream file("carteira.txt");
    if (!file)
    {
-      cerr << "Erro ao abrir o arquivo!" << endl;
-      return;
+      std::cerr << "Erro ao abrir o arquivo!" << std::endl;
+      return Carteira(); // retorno padrão vazio
    }
 
-   int idProcurado;
-   cout << "Digite o ID da carteira que deseja consultar: ";
-   cin >> idProcurado;
-
-   string linha;
+   std::string linha;
    bool encontrado = false;
    bool lendoBloco = false;
+   Carteira resultado;
 
-   while (getline(file, linha))
+   while (std::getline(file, linha))
    {
-      if (linha.find("ID:") != string::npos)
+      if (linha.find("ID:") != std::string::npos)
       {
-         int idLido = stoi(linha.substr(linha.find(":") + 1));
-         if (idLido == idProcurado)
+         int idLido = std::stoi(linha.substr(linha.find(":") + 1));
+         if (idLido == id)
          {
             encontrado = true;
             lendoBloco = true;
-            cout << "----------------------------------" << endl;
-            cout << linha << endl;
+            // Aqui você pode ler as linhas seguintes e popular resultado, ex:
+            // resultado.setId(idLido);
+            // ... etc
          }
          else
          {
@@ -91,62 +90,48 @@ void carteira::ChecarCarteiraLocal()
       }
       else if (lendoBloco)
       {
-         cout << linha << endl;
+         // Parse linhas do bloco para preencher 'resultado'
       }
    }
 
    if (!encontrado)
    {
-      cout << "Carteira com ID " << idProcurado << " não encontrada." << endl;
+      std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
    }
 
    file.close();
+   return resultado;
 }
 
-void carteira::EditarCarteiraLocal()
+void editarCarteira(int id, const std::string &novoTitular)
 {
-
-   int idAlvo;
-   int idLido;
-   cout << "Digite o ID da carteira que deseja editar: ";
-   cin >> idAlvo;
-
-   ifstream entrada("carteira.txt");
-   ofstream saida("temp.txt");
+   std::ifstream entrada("carteira.txt");
+   std::ofstream saida("temp.txt");
 
    if (!entrada || !saida)
    {
-      cerr << "Erro ao abrir os arquivos" << endl;
+      std::cerr << "Erro ao abrir os arquivos" << std::endl;
       return;
    }
 
-   string linha;
+   std::string linha;
    bool dentroDoBloco = false;
    bool editarBloco = false;
+   int idLido;
 
-   string novoNome, novaMoeda;
-   double novoSaldo;
-
-   while (getline(entrada, linha))
+   while (std::getline(entrada, linha))
    {
-      if (linha.find("ID: ") != string::npos) // procura ID até ser verdadeiro
+      if (linha.find("ID: ") != std::string::npos)
       {
-         // pega substring da poção 4 da linha até seu fim. assim pega o ID inteiro
-         // transforma ID em inteiro
-         idLido = stoi(linha.substr(4));
-         if (idLido == idAlvo)
+         idLido = std::stoi(linha.substr(4)); // pega o número após "ID: "
+         if (idLido == id)
          {
             editarBloco = true;
             dentroDoBloco = true;
 
-            cout << "Novo nome do titular: ";
-            cin.ignore(); // limpa o buffer antes de getline
-            getline(cin, novoNome);
-
-            saida << linha << endl; // escreve a linha "ID: ..."
-
-            saida << "Nome: " << novoNome << endl;
-            continue; // pula as linhas seguintes desse bloco
+            saida << linha << std::endl; // escreve a linha do ID
+            saida << "Nome: " << novoTitular << std::endl;
+            continue; // pula as linhas seguintes do bloco
          }
          else
          {
@@ -158,118 +143,118 @@ void carteira::EditarCarteiraLocal()
       if (linha == "----------------------------------")
       {
          dentroDoBloco = false;
-         saida << linha << endl;
+         saida << linha << std::endl;
          continue;
       }
 
       if (!editarBloco || !dentroDoBloco)
       {
-         saida << linha << endl;
+         saida << linha << std::endl;
       }
    }
 
    entrada.close();
    saida.close();
 
-   remove("carteira.txt");
-   rename("temp.txt", "carteira.txt");
+   std::remove("carteira.txt");
+   std::rename("temp.txt", "carteira.txt");
 
    if (editarBloco)
-      cout << "Carteira editada com sucesso!" << endl;
+      std::cout << "Carteira editada com sucesso!" << std::endl;
    else
-      cout << "Carteira com ID " << idAlvo << " não encontrada." << endl;
+      std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
 }
 
-void carteira::ExcluirCarteiraLocal()
+void excluirCarteira(int id)
 {
+    std::ifstream entrada("carteira.txt");
+    std::ofstream saida("temp.txt");
 
-   int escolha;
+    if (!entrada || !saida)
+    {
+        std::cerr << "Erro ao abrir os arquivos" << std::endl;
+        return;
+    }
 
-   cout << "Escolha um ID para excluir: " << endl;
-   cin >> escolha;
+    std::string linha;
+    int idLido;
+    bool excluirBloco = false;
+    bool encontrado = false;
 
-   ifstream entrada("carteira.txt");
-   ofstream saida("temp.txt");
+    while (std::getline(entrada, linha))
+    {
+        if (linha.find("ID: ") != std::string::npos)
+        {
+            idLido = std::stoi(linha.substr(4)); // extrai o número após "ID: "
+            excluirBloco = (idLido == id);
+            if (excluirBloco)
+            {
+                encontrado = true;
+            }
+        }
 
-   if (!entrada || !saida)
-   {
-      cerr << "Erro ao abrir os arquivos" << endl;
-      return;
-   }
+        if (!excluirBloco)
+        {
+            saida << linha << std::endl;
+        }
 
-   string linha;
-   int idLido;
-   bool excluirBloco = false;
+        if (linha == "----------------------------------")
+        {
+            excluirBloco = false; // fim do bloco
+        }
+    }
 
-   // le apenas os IDs até encontrar o escolhido
-   while (getline(entrada, linha))
-   {
-      if (linha.find("ID: ") != string::npos) //"find" retorna "npos" caso a string não seja encontrada
-      {
-         idLido = stoi(linha.substr(4)); // pega o número após o "ID: "
-         excluirBloco = (idLido == escolha);
-      }
+    entrada.close();
+    saida.close();
 
-      if (!excluirBloco) // escreve a mesma linha caso não seja a do ID escolhido
-      {
-         saida << linha << endl;
-      }
+    std::remove("carteira.txt");
+    std::rename("temp.txt", "carteira.txt");
 
-      if (linha == "----------------------------------")
-      {
-         excluirBloco = false; // exclui bloco até o fim de um registro
-      }
-   }
-
-   entrada.close();
-   saida.close();
-
-   remove("carteira.txt");
-   rename("temp.txt", "carteira.txt");
-
-   cout << "Carteira com ID " << escolha << " foi excluida." << endl;
+    if (encontrado)
+        std::cout << "Carteira com ID " << id << " foi excluída." << std::endl;
+    else
+        std::cout << "Carteira com ID " << id << " não foi encontrada." << std::endl;
 }
 
-void NovaCarteiraRemoto()
+void CarteiraDAO_Remoto::criarCarteira(const Carteira &carteira)
 {
    try
    {
       sql::mysql::MySQL_Driver *driver;
-      unique_ptr<sql::Connection> con;
-      unique_ptr<sql::PreparedStatement> pstmt;
-      unique_ptr<sql::Statement> stmt;
-      unique_ptr<sql::ResultSet> res;
+      std::unique_ptr<sql::Connection> con;
+      std::unique_ptr<sql::PreparedStatement> pstmt;
+      std::unique_ptr<sql::Statement> stmt;
+      std::unique_ptr<sql::ResultSet> res;
 
       // Conectar ao MariaDB
       driver = sql::mysql::get_mysql_driver_instance();
       con.reset(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
-      con->setSchema("PooI_25_Yxx"); // use seu banco
+      con->setSchema("PooI_25_Yxx"); // substitua pelo nome do seu banco
 
       // Inserir dados na tabela CARTEIRA
       pstmt.reset(con->prepareStatement(
           "INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)"));
-      pstmt->setString(1, nome_titular);
-      pstmt->setString(2, corretora);
+      pstmt->setString(1, carteira.getTitular());
+      pstmt->setString(2, carteira.getCorretora());
       pstmt->executeUpdate();
 
-      // Recuperar o ID gerado (último auto_increment)
+      // Recuperar o ID gerado
       stmt.reset(con->createStatement());
       res.reset(stmt->executeQuery("SELECT LAST_INSERT_ID() AS id"));
       if (res->next())
       {
          int idCriado = res->getInt("id");
-
-         cout << "\nCarteira criada com sucesso" << endl;
-         cout << "ID da nova carteira: " << idCriado << endl;
+         std::cout << "\nCarteira criada com sucesso" << std::endl;
+         std::cout << "ID da nova carteira: " << idCriado << std::endl;
       }
    }
    catch (sql::SQLException &e)
    {
-      cerr << "Erro ao criar carteira no banco: " << e.what() << endl;
+      std::cerr << "Erro ao criar carteira no banco: " << e.what() << std::endl;
    }
 }
 
-void ChecarCarteiraRemoto()
+Carteira CarteiraDAO_Remoto::consultarCarteira(int id)
 {
    try
    {
@@ -277,10 +262,6 @@ void ChecarCarteiraRemoto()
       unique_ptr<sql::Connection> con;
       unique_ptr<sql::PreparedStatement> pstmt;
       unique_ptr<sql::ResultSet> res;
-
-      int idProcurado;
-      cout << "Digite o ID da carteira que deseja consultar: ";
-      cin >> idProcurado;
 
       // Conectar ao banco
       driver = sql::mysql::get_mysql_driver_instance();
@@ -289,87 +270,82 @@ void ChecarCarteiraRemoto()
 
       // Query para buscar a carteira
       pstmt.reset(con->prepareStatement("SELECT * FROM CARTEIRA WHERE IdCarteira = ?"));
-      pstmt->setInt(1, idProcurado);
+      pstmt->setInt(1, id);
       res.reset(pstmt->executeQuery());
 
       if (res->next())
       {
+         // Cria e retorna o objeto Carteira
+         Carteira carteira;
+         carteira.setId(res->getInt("IdCarteira"));
+         carteira.setTitular(res->getString("Titular"));
+         carteira.setCorretora(res->getString("Corretora"));
+
+         // Opcional: imprimir
          cout << "----------------------------------" << endl;
-         cout << "ID: " << res->getInt("IdCarteira") << endl;
-         cout << "Nome: " << res->getString("Titular") << endl;
-         cout << "Corretora: " << res->getString("Corretora") << endl;
+         cout << "ID: " << carteira.getId() << endl;
+         cout << "Nome: " << carteira.getTitular() << endl;
+         cout << "Corretora: " << carteira.getCorretora() << endl;
+
+         return carteira;
       }
       else
       {
-         cout << "Carteira com ID " << idProcurado << " não encontrada." << endl;
+         cout << "Carteira com ID " << id << " não encontrada." << endl;
+         return Carteira(); // Retorna uma carteira vazia
       }
    }
    catch (sql::SQLException &e)
    {
       cerr << "Erro ao consultar carteira no banco: " << e.what() << endl;
+      return Carteira(); // Retorna carteira vazia em caso de erro
    }
 }
 
-void EditarCarteiraRemoto()
+void CarteiraDAO_Remoto::editarCarteira(int id, const string &novoTitular, const string &novaCorretora)
 {
    try
    {
       sql::mysql::MySQL_Driver *driver;
-      unique_ptr<sql::Connection> con;
-      unique_ptr<sql::PreparedStatement> pstmt;
-
-      int idEditar;
-      string novoTitular, novaCorretora;
-
-      cout << "Digite o ID da carteira que deseja editar: ";
-      cin >> idEditar;
-      cin.ignore(); // Limpar buffer
-
-      cout << "Digite o novo nome do titular: ";
-      getline(cin, novoTitular);
-
-      cout << "Digite a nova corretora: ";
-      getline(cin, novaCorretora);
+      std::unique_ptr<sql::Connection> con;
+      std::unique_ptr<sql::PreparedStatement> pstmt;
 
       // Conectar ao banco
       driver = sql::mysql::get_mysql_driver_instance();
       con.reset(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
       con->setSchema("PooI_25_Yxx");
 
-      // Preparar e executar update
-      pstmt.reset(con->prepareStatement("UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"));
+      // Atualizar os dados
+      pstmt.reset(con->prepareStatement(
+          "UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"));
       pstmt->setString(1, novoTitular);
       pstmt->setString(2, novaCorretora);
-      pstmt->setInt(3, idEditar);
+      pstmt->setInt(3, id);
 
       int linhasAfetadas = pstmt->executeUpdate();
 
       if (linhasAfetadas > 0)
       {
-         cout << "Carteira ID " << idEditar << " atualizada com sucesso!" << endl;
+         std::cout << "Carteira ID " << id << " atualizada com sucesso!" << std::endl;
       }
       else
       {
-         cout << "Carteira com ID " << idEditar << " não encontrada." << endl;
+         std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
       }
    }
    catch (sql::SQLException &e)
    {
-      cerr << "Erro ao editar carteira no banco: " << e.what() << endl;
+      std::cerr << "Erro ao editar carteira no banco: " << e.what() << std::endl;
    }
 }
 
-void ExcluirCarteiraRemoto()
+void CarteiraDAO_Remoto::excluirCarteira(int id)
 {
    try
    {
       sql::mysql::MySQL_Driver *driver;
-      unique_ptr<sql::Connection> con;
-      unique_ptr<sql::PreparedStatement> pstmt;
-
-      int idExcluir;
-      cout << "Digite o ID da carteira que deseja excluir: ";
-      cin >> idExcluir;
+      std::unique_ptr<sql::Connection> con;
+      std::unique_ptr<sql::PreparedStatement> pstmt;
 
       // Conectar ao banco
       driver = sql::mysql::get_mysql_driver_instance();
@@ -378,21 +354,21 @@ void ExcluirCarteiraRemoto()
 
       // Preparar e executar delete
       pstmt.reset(con->prepareStatement("DELETE FROM CARTEIRA WHERE IdCarteira = ?"));
-      pstmt->setInt(1, idExcluir);
+      pstmt->setInt(1, id);
 
       int linhasAfetadas = pstmt->executeUpdate();
 
       if (linhasAfetadas > 0)
       {
-         cout << "Carteira ID " << idExcluir << " excluida com sucesso" << endl;
+         std::cout << "Carteira ID " << id << " excluída com sucesso." << std::endl;
       }
       else
       {
-         cout << "Carteira com ID " << idExcluir << " nao encontrada." << endl;
+         std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
       }
    }
    catch (sql::SQLException &e)
    {
-      cerr << "Erro ao excluir carteira no banco: " << e.what() << endl;
+      std::cerr << "Erro ao excluir carteira no banco: " << e.what() << std::endl;
    }
 }

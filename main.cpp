@@ -24,7 +24,7 @@ int main()
             case 1:
             {
                 int opcaoCarteira = -1;
-                carteira cart;
+                CarteiraDAO_Local dao;
 
                 while (opcaoCarteira != 0)
                 {
@@ -33,28 +33,72 @@ int main()
                     switch (opcaoCarteira)
                     {
                     case 1:
+
+                        int i;
                         int n;
-                        cout << "Quantas carteiras deseja registrar? ";
-                        cin >> n;
 
-                        for (int i = 0; i < n; ++i)
+                        for (i = 0; i < n; ++i)
                         {
-
+                            string nomeTitular, corretora;
                             cout << "Nome do titular: ";
-                            cin >> cart.nome_titular;
+                            cin >> nomeTitular;
+                            cout << "Corretora: ";
+                            cin >> corretora;
 
-                            cart.NovaCarteiraLocal();
+                            Carteira c(0, nomeTitular, corretora);
+                            dao.criarCarteira(c);
                         }
+
                         break;
                     case 2:
-                        cart.ChecarCarteiraLocal();
-                        break;
+                    {
+                        int idConsulta;
+                        cout << "Digite o ID da carteira para consultar: ";
+                        cin >> idConsulta;
+
+                        Carteira cart = dao.consultarCarteira(idConsulta);
+
+                        if (cart.getId() != 0) // Assumindo que ID 0 significa "não encontrado"
+                        {
+                            cout << "Carteira encontrada:" << endl;
+                            cout << "ID: " << cart.getId() << endl;
+                            cout << "Titular: " << cart.getTitular() << endl;
+                            cout << "Corretora: " << cart.getCorretora() << endl;
+                        }
+                        else
+                        {
+                            cout << "Carteira com ID " << idConsulta << " nao encontrada." << endl;
+                        }
+                    }
+                    break;
+
                     case 3:
-                        cart.EditarCarteiraLocal();
-                        break;
+                    {
+                        int idEditar;
+                        string novoTitular;
+                        cout << "Digite o ID da carteira que deseja editar: ";
+                        cin >> idEditar;
+
+                        cout << "Digite o novo nome do titular: ";
+                        cin.ignore(); // Limpa o buffer do teclado
+                        getline(cin, novoTitular);
+
+                        dao.editarCarteira(idEditar, novoTitular);
+                        cout << "Carteira editada." << endl;
+                    }
+                    break;
+
                     case 4:
-                        cart.ExcluirCarteiraLocal();
-                        break;
+                    {
+                        int idExcluir;
+                        cout << "Digite o ID da carteira que deseja excluir: ";
+                        cin >> idExcluir;
+
+                        dao.excluirCarteira(idExcluir);
+                        cout << "Carteira excluida." << endl;
+                    }
+                    break;
+
                     case 0:
                         break;
                     default:
@@ -132,10 +176,10 @@ int main()
 
             switch (opcaoPrincipal)
             {
-            case 1:
+            case 1: // menu principal
             {
                 int opcaoCarteira = -1;
-                carteira cart;
+                CarteiraDAO_Remoto daoRemoto;
 
                 while (opcaoCarteira != 0)
                 {
@@ -144,19 +188,78 @@ int main()
                     switch (opcaoCarteira)
                     {
                     case 1:
-                        //cart.NovaCarteiraRemoto();
-                        break;
+                    {
+                        string nomeTitular, corretora;
+
+                        cout << "Nome do titular: ";
+                        cin.ignore(); // limpar buffer se necessário
+                        getline(cin, nomeTitular);
+
+                        cout << "Corretora: ";
+                        getline(cin, corretora);
+
+                        CarteiraDAO_Remoto daoRemoto;
+                        Carteira c(0, nomeTitular, corretora);
+                        daoRemoto.criarCarteira(c);
+                    }
+                    break;
+
                     case 2:
-                       // cart.ChecarCarteiraRemoto();
-                        break;
+                    {
+                        int id;
+                        cout << "Digite o ID da carteira que deseja consultar: ";
+                        cin >> id;
+
+                        CarteiraDAO_Remoto daoRemoto;
+                        Carteira c = daoRemoto.consultarCarteira(id);
+
+                        if (c.getId() != 0)
+                        {
+                            cout << "ID: " << c.getId() << endl;
+                            cout << "Titular: " << c.getTitular() << endl;
+                            cout << "Corretora: " << c.getCorretora() << endl;
+                        }
+                        else
+                        {
+                            cout << "Carteira não encontrada." << endl;
+                        }
+                    }
+                    break;
+
                     case 3:
-                       // cart.EditarCarteiraRemoto();
-                        break;
-                       // cart.ExcluirCarteiraRemoto();
+                    {
+                        int id;
+                        string novoTitular, novaCorretora;
+
+                        cout << "Digite o ID da carteira que deseja editar: ";
+                        cin >> id;
+                        cin.ignore();
+
+                        cout << "Novo nome do titular: ";
+                        getline(cin, novoTitular);
+
+                        cout << "Nova corretora: ";
+                        getline(cin, novaCorretora);
+
+                        CarteiraDAO_Remoto daoRemoto;
+                        daoRemoto.editarCarteira(id, novoTitular, novaCorretora);
+                    }
+                    break;
+
                     case 4:
-                        break;
+                    {
+                        int id;
+                        cout << "Digite o ID da carteira que deseja excluir: ";
+                        cin >> id;
+
+                        CarteiraDAO_Remoto daoRemoto;
+                        daoRemoto.excluirCarteira(id);
+                    }
+                    break;
+
                     case 0:
                         break;
+
                     default:
                         cout << "Opcao invalida." << endl;
                     }
