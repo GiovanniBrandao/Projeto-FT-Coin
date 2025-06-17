@@ -2,6 +2,13 @@
 
 #include <fstream>
 #include <iostream>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/driver.h>
+#include <cppconn/connection.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
 
 void carteira::NovaCarteiraLocal()
 {
@@ -15,8 +22,8 @@ void carteira::NovaCarteiraLocal()
    {
       if (linha.find("ID:") != string::npos) //"find" retorna "npos" caso a string não seja encontrada
       {
-         int idLido = stoi(linha.substr(linha.find(":") + 1)); //encontrar o número do ID e soma 1
-         if (idLido > ID_carteira) //registra o ID criado caso maior que o já registrado na classe
+         int idLido = stoi(linha.substr(linha.find(":") + 1)); // encontrar o número do ID e soma 1
+         if (idLido > ID_carteira)                             // registra o ID criado caso maior que o já registrado na classe
             ID_carteira = idLido;
       }
    }
@@ -26,7 +33,6 @@ void carteira::NovaCarteiraLocal()
    // Incrementa o ID para a próxima carteira
    ID_carteira++;
 
-   
    ofstream escrita("carteira.txt", ios::app);
    if (!escrita)
    {
@@ -97,10 +103,11 @@ void carteira::ChecarCarteiraLocal()
    file.close();
 }
 
-void carteira::EditarCarteiraLocal() {
+void carteira::EditarCarteiraLocal()
+{
 
-int idAlvo;
-int idLido;
+   int idAlvo;
+   int idLido;
    cout << "Digite o ID da carteira que deseja editar: ";
    cin >> idAlvo;
 
@@ -122,11 +129,11 @@ int idLido;
 
    while (getline(entrada, linha))
    {
-      if (linha.find("ID: ") != string::npos) //procura ID até ser verdadeiro
+      if (linha.find("ID: ") != string::npos) // procura ID até ser verdadeiro
       {
-         //pega substring da poção 4 da linha até seu fim. assim pega o ID inteiro
-         //transforma ID em inteiro
-         idLido = stoi(linha.substr(4)); 
+         // pega substring da poção 4 da linha até seu fim. assim pega o ID inteiro
+         // transforma ID em inteiro
+         idLido = stoi(linha.substr(4));
          if (idLido == idAlvo)
          {
             editarBloco = true;
@@ -171,8 +178,6 @@ int idLido;
       cout << "Carteira editada com sucesso!" << endl;
    else
       cout << "Carteira com ID " << idAlvo << " não encontrada." << endl;
-
-
 }
 
 void carteira::ExcluirCarteiraLocal()
@@ -225,11 +230,169 @@ void carteira::ExcluirCarteiraLocal()
    cout << "Carteira com ID " << escolha << " foi excluida." << endl;
 }
 
+void NovaCarteiraRemoto()
+{
+   try
+   {
+      sql::mysql::MySQL_Driver *driver;
+      unique_ptr<sql::Connection> con;
+      unique_ptr<sql::PreparedStatement> pstmt;
+      unique_ptr<sql::Statement> stmt;
+      unique_ptr<sql::ResultSet> res;
 
-void NovaCarteiraRemoto() {}
+      // Conectar ao MariaDB
+      driver = sql::mysql::get_mysql_driver_instance();
+      con.reset(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
+      con->setSchema("PooI_25_Yxx"); // use seu banco
 
-void ChecarCarteiraRemoto() {}
+      // Inserir dados na tabela CARTEIRA
+      pstmt.reset(con->prepareStatement(
+          "INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)"));
+      pstmt->setString(1, nome_titular);
+      pstmt->setString(2, corretora);
+      pstmt->executeUpdate();
 
-void EditarCarteiraRemoto() {}
+      // Recuperar o ID gerado (último auto_increment)
+      stmt.reset(con->createStatement());
+      res.reset(stmt->executeQuery("SELECT LAST_INSERT_ID() AS id"));
+      if (res->next())
+      {
+         int idCriado = res->getInt("id");
 
-void ExcluirCarteiraRemoto() {}
+         cout << "\nCarteira criada com sucesso" << endl;
+         cout << "ID da nova carteira: " << idCriado << endl;
+      }
+   }
+   catch (sql::SQLException &e)
+   {
+      cerr << "Erro ao criar carteira no banco: " << e.what() << endl;
+   }
+}
+
+void ChecarCarteiraRemoto()
+{
+   try
+   {
+      sql::mysql::MySQL_Driver *driver;
+      unique_ptr<sql::Connection> con;
+      unique_ptr<sql::PreparedStatement> pstmt;
+      unique_ptr<sql::ResultSet> res;
+
+      int idProcurado;
+      cout << "Digite o ID da carteira que deseja consultar: ";
+      cin >> idProcurado;
+
+      // Conectar ao banco
+      driver = sql::mysql::get_mysql_driver_instance();
+      con.reset(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
+      con->setSchema("PooI_25_Yxx");
+
+      // Query para buscar a carteira
+      pstmt.reset(con->prepareStatement("SELECT * FROM CARTEIRA WHERE IdCarteira = ?"));
+      pstmt->setInt(1, idProcurado);
+      res.reset(pstmt->executeQuery());
+
+      if (res->next())
+      {
+         cout << "----------------------------------" << endl;
+         cout << "ID: " << res->getInt("IdCarteira") << endl;
+         cout << "Nome: " << res->getString("Titular") << endl;
+         cout << "Corretora: " << res->getString("Corretora") << endl;
+      }
+      else
+      {
+         cout << "Carteira com ID " << idProcurado << " não encontrada." << endl;
+      }
+   }
+   catch (sql::SQLException &e)
+   {
+      cerr << "Erro ao consultar carteira no banco: " << e.what() << endl;
+   }
+}
+
+void EditarCarteiraRemoto()
+{
+   try
+   {
+      sql::mysql::MySQL_Driver *driver;
+      unique_ptr<sql::Connection> con;
+      unique_ptr<sql::PreparedStatement> pstmt;
+
+      int idEditar;
+      string novoTitular, novaCorretora;
+
+      cout << "Digite o ID da carteira que deseja editar: ";
+      cin >> idEditar;
+      cin.ignore(); // Limpar buffer
+
+      cout << "Digite o novo nome do titular: ";
+      getline(cin, novoTitular);
+
+      cout << "Digite a nova corretora: ";
+      getline(cin, novaCorretora);
+
+      // Conectar ao banco
+      driver = sql::mysql::get_mysql_driver_instance();
+      con.reset(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
+      con->setSchema("PooI_25_Yxx");
+
+      // Preparar e executar update
+      pstmt.reset(con->prepareStatement("UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"));
+      pstmt->setString(1, novoTitular);
+      pstmt->setString(2, novaCorretora);
+      pstmt->setInt(3, idEditar);
+
+      int linhasAfetadas = pstmt->executeUpdate();
+
+      if (linhasAfetadas > 0)
+      {
+         cout << "Carteira ID " << idEditar << " atualizada com sucesso!" << endl;
+      }
+      else
+      {
+         cout << "Carteira com ID " << idEditar << " não encontrada." << endl;
+      }
+   }
+   catch (sql::SQLException &e)
+   {
+      cerr << "Erro ao editar carteira no banco: " << e.what() << endl;
+   }
+}
+
+void ExcluirCarteiraRemoto()
+{
+   try
+   {
+      sql::mysql::MySQL_Driver *driver;
+      unique_ptr<sql::Connection> con;
+      unique_ptr<sql::PreparedStatement> pstmt;
+
+      int idExcluir;
+      cout << "Digite o ID da carteira que deseja excluir: ";
+      cin >> idExcluir;
+
+      // Conectar ao banco
+      driver = sql::mysql::get_mysql_driver_instance();
+      con.reset(driver->connect("tcp://localhost:3306", "seu_usuario", "sua_senha"));
+      con->setSchema("PooI_25_Yxx");
+
+      // Preparar e executar delete
+      pstmt.reset(con->prepareStatement("DELETE FROM CARTEIRA WHERE IdCarteira = ?"));
+      pstmt->setInt(1, idExcluir);
+
+      int linhasAfetadas = pstmt->executeUpdate();
+
+      if (linhasAfetadas > 0)
+      {
+         cout << "Carteira ID " << idExcluir << " excluida com sucesso" << endl;
+      }
+      else
+      {
+         cout << "Carteira com ID " << idExcluir << " nao encontrada." << endl;
+      }
+   }
+   catch (sql::SQLException &e)
+   {
+      cerr << "Erro ao excluir carteira no banco: " << e.what() << endl;
+   }
+}
