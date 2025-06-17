@@ -77,10 +77,10 @@ int main()
                     switch (opcaoMov)
                     {
                     case 1:
-                        mov.compra();
+                        mov.compraLocal();
                         break;
                     case 2:
-                        mov.venda();
+                        mov.vendaLocal();
                         break;
                     case 0:
                         break;
@@ -124,7 +124,103 @@ int main()
     }
     else if (MenuGravacao() == 2)
     {
-        // gravação remota
+        int opcaoPrincipal = -1;
+
+        while (opcaoPrincipal != 0)
+        {
+            opcaoPrincipal = MenuPrincipal();
+
+            switch (opcaoPrincipal)
+            {
+            case 1:
+            {
+                int opcaoCarteira = -1;
+                carteira cart;
+
+                while (opcaoCarteira != 0)
+                {
+                    opcaoCarteira = MenuCarteira();
+
+                    switch (opcaoCarteira)
+                    {
+                    case 1:
+                        //cart.NovaCarteiraRemoto();
+                        break;
+                    case 2:
+                       // cart.ChecarCarteiraRemoto();
+                        break;
+                    case 3:
+                       // cart.EditarCarteiraRemoto();
+                        break;
+                       // cart.ExcluirCarteiraRemoto();
+                    case 4:
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        cout << "Opcao invalida." << endl;
+                    }
+                }
+                break;
+            }
+
+            case 2:
+            {
+                int opcaoMov = -1;
+                movimentacao mov;
+
+                while (opcaoMov != 0)
+                {
+
+                    opcaoMov = MenuMovimentacao();
+
+                    switch (opcaoMov)
+                    {
+                    case 1:
+                        //mov.compraRemota();
+                        break;
+                    case 2:
+                        //mov.vendaRemota();
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        cout << "Opcao invalida." << endl;
+                    }
+                }
+                break;
+            }
+
+            case 3:
+            {
+                int opcaoRel = -1;
+                while (opcaoRel != 0)
+                {
+                    opcaoRel = MenuRelatorios();
+                    // Adicione as chamadas de funções aqui
+                }
+                break;
+            }
+
+            case 4:
+            {
+                int opcaoAjuda = -1;
+                while (opcaoAjuda != 0)
+                {
+                    opcaoAjuda = MenuAjuda();
+                    // Adicione ações aqui se quiser
+                }
+                break;
+            }
+
+            case 0:
+                cout << "Saindo..." << endl;
+                break;
+
+            default:
+                cout << "Opcao invalida, tente novamente." << endl;
+            }
+        }
     }
 
     return 0;

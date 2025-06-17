@@ -1,15 +1,29 @@
 #ifndef MOVIMENTO_H
 #define MOVIMENTO_H
 
+#include <string>
+
+using namespace std;
 
 class movimentacao
 {
 
+private:
+    int idMovimento;
+    int idCarteira;
+    string dataOperacao;
+    char tipoOperacao; // 'C' ou 'V'
+    double quantidade;
+
 public:
 
-    void compra();
+    void compraLocal();
 
-    void venda();
+    void vendaLocal();
+
+    void compraRemota();
+
+    void vendaRemota();
 };
 
 

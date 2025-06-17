@@ -37,8 +37,7 @@ void carteira::NovaCarteiraLocal()
    escrita << "----------------------------------" << endl;
    escrita << "ID: " << ID_carteira << endl;
    escrita << "Nome: " << nome_titular << endl;
-   escrita << "Dinheiro real R$: " << saldo << endl;
-   escrita << "Criptomoeda: " << cripto << endl;
+   escrita << "Corretora: " << corretora << endl;
    escrita << "Moeda: " << moeda << endl;
 
    escrita.close();
@@ -137,13 +136,9 @@ int idLido;
             cin.ignore(); // limpa o buffer antes de getline
             getline(cin, novoNome);
 
-            cout << "Novo saldo: ";
-            cin >> novoSaldo;
-
             saida << linha << endl; // escreve a linha "ID: ..."
 
             saida << "Nome: " << novoNome << endl;
-            saida << "Fundos: " << novoSaldo << endl;
             continue; // pula as linhas seguintes desse bloco
          }
          else

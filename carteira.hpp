@@ -10,8 +10,7 @@ class carteira {
 public:
 
 int ID_carteira;
-float saldo = 0.00;
-float cripto = 0.00;
+string corretora;
 string nome_titular;
 string moeda = "FT Coin";
 
