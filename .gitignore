@@ -2,7 +2,3 @@
 
 *.txt
 *.exe
-
-# arquivos do vscode
-
-.vscode/
