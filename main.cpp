@@ -53,10 +53,11 @@ int main()
 
                         if (cart.getId() != 0) // Assumindo que ID 0 significa "não encontrado"
                         {
-                            std::cout << "Carteira encontrada:" << std::endl;
+                            std::cout << "----------------------------------" << std::endl;
                             std::cout << "ID: " << cart.getId() << std::endl;
                             std::cout << "Titular: " << cart.getTitular() << std::endl;
                             std::cout << "Corretora: " << cart.getCorretora() << std::endl;
+                            std::cout << "----------------------------------" << std::endl;
                         }
                         else
                         {
@@ -338,19 +339,19 @@ int main()
                     switch (opcaoRel)
                     {
                     case 1:
-                        
+
                         break;
                     case 2:
-                        
+
                         break;
                     case 3:
-                        
+
                         break;
                     case 4:
-                        
+
                         break;
                     case 5:
-                        
+
                         break;
                     case 0:
                         break;

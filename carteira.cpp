@@ -50,17 +50,15 @@ void CarteiraDAO_Local::criarCarteira(const Carteira &carteira)
 
 Carteira CarteiraDAO_Local::consultarCarteira(int id)
 {
-
    std::ifstream file("carteira.txt");
    if (!file)
    {
-      std::cerr << "Erro ao abrir o arquivo!" << std::endl;
-      return Carteira(); // retorno padrão vazio
+      std::cerr << "Erro ao abrir o arquivo" << std::endl;
+      return Carteira();
    }
 
    std::string linha;
    bool encontrado = false;
-   bool lendoBloco = false;
    Carteira resultado;
 
    while (std::getline(file, linha))
@@ -71,28 +69,32 @@ Carteira CarteiraDAO_Local::consultarCarteira(int id)
          if (idLido == id)
          {
             encontrado = true;
-            lendoBloco = true;
-            // Aqui você pode ler as linhas seguintes e popular resultado, ex:
-            // resultado.setId(idLido);
-            // ... etc
-         }
-         else
-         {
-            lendoBloco = false;
-         }
-      }
-      else if (lendoBloco)
-      {
-         // Parse linhas do bloco para preencher 'resultado'
-      }
-   }
+            resultado.setId(idLido); // Define o ID da carteira encontrada
 
-   if (!encontrado)
-   {
-      std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
+            if (std::getline(file, linha) && linha.find("Nome:") != std::string::npos)
+            {
+               resultado.setTitular(linha.substr(linha.find(":") + 2));
+            }
+            if (std::getline(file, linha) && linha.find("Corretora:") != std::string::npos)
+            {
+               resultado.setCorretora(linha.substr(linha.find(":") + 2));
+            }
+            if (std::getline(file, linha) && linha.find("Moeda:") != std::string::npos)
+            {
+            }
+
+            break;
+         }
+      }
    }
 
    file.close();
+
+   if (!encontrado)
+   {
+      std::cout << "Carteira com ID " << id << " nao encontrada." << std::endl;
+      return Carteira();
+   }
    return resultado;
 }
 
@@ -108,41 +110,48 @@ void CarteiraDAO_Local::editarCarteira(int id, const std::string &novoTitular)
    }
 
    std::string linha;
-   bool dentroDoBloco = false;
-   bool editarBloco = false;
-   int idLido;
+   bool editadoComSucesso = false; // Flag para indicar se a carteira foi encontrada e editada
 
    while (std::getline(entrada, linha))
    {
       if (linha.find("ID: ") != std::string::npos)
       {
-         idLido = std::stoi(linha.substr(4)); // pega o número após "ID: "
+         int idLido = std::stoi(linha.substr(linha.find(":") + 1));
          if (idLido == id)
          {
-            editarBloco = true;
-            dentroDoBloco = true;
+            editadoComSucesso = true;
 
-            saida << linha << std::endl; // escreve a linha do ID
+            saida << linha << std::endl;
+
+            std::getline(entrada, linha);
             saida << "Nome: " << novoTitular << std::endl;
-            continue; // pula as linhas seguintes do bloco
+
+            if (std::getline(entrada, linha))
+            {
+               saida << linha << std::endl;
+            }
+
+            if (std::getline(entrada, linha))
+            {
+               saida << linha << std::endl;
+            }
          }
          else
          {
-            editarBloco = false;
-            dentroDoBloco = true;
+            saida << linha << std::endl;
          }
       }
-
-      if (linha == "----------------------------------")
+      else
       {
-         dentroDoBloco = false;
-         saida << linha << std::endl;
-         continue;
-      }
-
-      if (!editarBloco || !dentroDoBloco)
-      {
-         saida << linha << std::endl;
+         if (!editadoComSucesso || linha.find("----------------------------------") == std::string::npos)
+         {
+            saida << linha << std::endl;
+         }
+         else
+         {
+            saida << linha << std::endl;
+            editadoComSucesso = false;
+         }
       }
    }
 
@@ -152,7 +161,7 @@ void CarteiraDAO_Local::editarCarteira(int id, const std::string &novoTitular)
    std::remove("carteira.txt");
    std::rename("temp.txt", "carteira.txt");
 
-   if (editarBloco)
+   if (editadoComSucesso) // Verifica se a carteira foi encontrada e editada
       std::cout << "Carteira editada com sucesso!" << std::endl;
    else
       std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
@@ -215,9 +224,9 @@ void CarteiraDAO_Remoto::criarCarteira(const Carteira &carteira)
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
-          "PooI_25_A01",                                    // Altere o usuário
-          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
+          "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+          "*******",                                    // Altere o usuário
+          "*******"));                                   // Altere a senha
 
       // Preparar a inserção
       std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement("INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)"));
@@ -249,13 +258,13 @@ Carteira CarteiraDAO_Remoto::consultarCarteira(int id)
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
-          "PooI_25_A01",                                    // Altere o usuário
-          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
+          "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+          "*******",                                    // Altere o usuário
+          "*******"));                                   // Altere a senha
 
       // Preparar a consulta
       std::shared_ptr<sql::PreparedStatement> stmntSelect(conn->prepareStatement("SELECT * FROM CARTEIRA WHERE IdCarteira = ?"));
-      stmntSelect->setInt(0, id); // <-- CORREÇÃO: Definir o parâmetro para a consulta
+      stmntSelect->setInt(0, id);
 
       // Executar e obter resultado
       std::shared_ptr<sql::ResultSet> resSelect(stmntSelect->executeQuery()); // CORREÇÃO: Inicialização correta de shared_ptr
@@ -288,9 +297,9 @@ void CarteiraDAO_Remoto::editarCarteira(int id, const std::string &novoTitular, 
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
-          "PooI_25_A01",                                    // Altere o usuário
-          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
+          "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+          "*******",                                    // Altere o usuário
+          "*******"));                                   // Altere a senha
 
       // Preparar e executar comando SQL
       std::shared_ptr<sql::PreparedStatement> stmntUpdate(conn->prepareStatement("UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"));
@@ -318,9 +327,9 @@ void CarteiraDAO_Remoto::excluirCarteira(int id)
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
-          "PooI_25_A01",                                    // Altere o usuário
-          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
+          "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+          "*******",                                    // Altere o usuário
+          "*******"));                                   // Altere a senha
 
       std::shared_ptr<sql::PreparedStatement> stmntDelete(conn->prepareStatement("DELETE FROM CARTEIRA WHERE IdCarteira = ?"));
       stmntDelete->setInt(0, id);

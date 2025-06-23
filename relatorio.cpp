@@ -23,8 +23,8 @@ shared_ptr<sql::Connection> conectarMariaDB()
 {
 
     sql::Driver *driver = sql::mariadb::get_driver_instance();
-    return std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", //IP e user
+    return std::shared_ptr<sql::Connection>(driver->connect(
+          "jdbc:mariadb://*******:3306/*******", //IP e user
           "*******",  // usuário
           "*******")); // senha
 }

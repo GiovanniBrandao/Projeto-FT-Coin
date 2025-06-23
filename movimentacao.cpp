@@ -48,7 +48,6 @@ void movimentacao::compraLocal()
             }
             catch (...)
             {
-                // Ignorar linha mal formatada
                 continue;
             }
         }
@@ -153,19 +152,18 @@ void movimentacao::compraRemota()
 
     try
     {
-        // Alterado para obter o driver e a conexão corretamente
         sql::Driver *driver = sql::mariadb::get_driver_instance();
-         std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", //IP e user
-          "*******",  // usuário
-          "*******")); // senha
+        std::shared_ptr<sql::Connection> conn(driver->connect(
+            "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+            "*******",                                    // Altere o usuário
+            "*******"));                                   // Altere a senha
 
         // Verifica se carteira existe
         std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?")); // Usado stmntCheckCarteira para clareza
-        stmntCheckCarteira->setInt(0, idCarteira); // Índices em 0
+        stmntCheckCarteira->setInt(0, idCarteira);
 
         std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery()); // Renomeado e envolvido em shared_ptr
-        
+
         if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0) // Usado resCheckCarteira
         {
             cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
@@ -174,12 +172,12 @@ void movimentacao::compraRemota()
 
         // Pega cotação mais recente
         std::shared_ptr<sql::PreparedStatement> stmntCotacao(conn->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1")); // Usado stmntCotacao
-        std::shared_ptr<sql::ResultSet> resCotacao(stmntCotacao->executeQuery()); // Usado resCotacao
-        
+        std::shared_ptr<sql::ResultSet> resCotacao(stmntCotacao->executeQuery());                                                               // Usado resCotacao
+
         double cotacao = 0;
-        if (resCotacao->next()) // Usado resCotacao
+        if (resCotacao->next())
         {
-            cotacao = resCotacao->getDouble("Cotacao"); // Usado resCotacao
+            cotacao = resCotacao->getDouble("Cotacao");
         }
         else
         {
@@ -202,11 +200,10 @@ void movimentacao::compraRemota()
         // Registra a movimentação de compra
         std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
             "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
-            "VALUES (?, CURDATE(), 'C', ?)"
-        ));
-        stmntInsert->setInt(0, idCarteira);     // Índices em 0 para PreparedStatement
+            "VALUES (?, CURDATE(), 'C', ?)"));
+        stmntInsert->setInt(0, idCarteira);
         stmntInsert->setDouble(1, quantidade);
-        stmntInsert->executeUpdate(); // executeUpdate() é mais apropriado para INSERT
+        stmntInsert->executeUpdate();
 
         cout << "Compra registrada com sucesso!" << endl;
         cout << "Você comprou " << quantidade << " FT Coins por R$ " << valorReais << endl;
@@ -227,16 +224,15 @@ void movimentacao::vendaRemota()
 
     try
     {
-        // Alterado para obter o driver e a conexão corretamente
         sql::Driver *driver = sql::mariadb::get_driver_instance();
         std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", //IP e user
-          "*******",  // usuário
-          "*******")); // senha
+            "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+            "*******",                                    // Altere o usuário
+            "*******"));                                   // Altere a senha
 
         // Verifica se carteira existe
         std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
-        stmntCheckCarteira->setInt(0, idCarteira); // Índices em 0
+        stmntCheckCarteira->setInt(0, idCarteira);
 
         std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery()); // Renomeado e envolvido em shared_ptr
 
@@ -274,8 +270,7 @@ void movimentacao::vendaRemota()
         // Registra a movimentação de venda
         std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
             "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
-            "VALUES (?, CURDATE(), 'V', ?)"
-        ));
+            "VALUES (?, CURDATE(), 'V', ?)"));
         stmntInsert->setInt(0, idCarteira);
         stmntInsert->setDouble(1, quantidade);
         stmntInsert->executeUpdate();
