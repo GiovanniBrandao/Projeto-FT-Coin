@@ -2,17 +2,16 @@
 #include "carteira.hpp"
 #include "oraculo.hpp"
 #include "movimentacao.hpp"
+#include "ajuda.hpp"
+#include "relatorio.hpp"
 
 #include <iostream>
-
-using namespace std;
+#include <string>
 
 int main()
 {
-
     if (MenuGravacao() == 1)
     {
-
         int opcaoPrincipal = -1;
 
         while (opcaoPrincipal != 0)
@@ -33,81 +32,72 @@ int main()
                     switch (opcaoCarteira)
                     {
                     case 1:
+                    {
+                        std::string nomeTitular, corretora;
+                        std::cout << "Nome do titular: ";
+                        std::cin >> nomeTitular;
+                        std::cout << "Corretora: ";
+                        std::cin >> corretora;
 
-                        int i;
-                        int n;
-
-                        for (i = 0; i < n; ++i)
-                        {
-                            string nomeTitular, corretora;
-                            cout << "Nome do titular: ";
-                            cin >> nomeTitular;
-                            cout << "Corretora: ";
-                            cin >> corretora;
-
-                            Carteira c(0, nomeTitular, corretora);
-                            dao.criarCarteira(c);
-                        }
-
+                        Carteira c(0, nomeTitular, corretora);
+                        dao.criarCarteira(c);
                         break;
+                    }
                     case 2:
                     {
                         int idConsulta;
-                        cout << "Digite o ID da carteira para consultar: ";
-                        cin >> idConsulta;
+                        std::cout << "Digite o ID da carteira para consultar: ";
+                        std::cin >> idConsulta;
 
                         Carteira cart = dao.consultarCarteira(idConsulta);
 
                         if (cart.getId() != 0) // Assumindo que ID 0 significa "não encontrado"
                         {
-                            cout << "Carteira encontrada:" << endl;
-                            cout << "ID: " << cart.getId() << endl;
-                            cout << "Titular: " << cart.getTitular() << endl;
-                            cout << "Corretora: " << cart.getCorretora() << endl;
+                            std::cout << "Carteira encontrada:" << std::endl;
+                            std::cout << "ID: " << cart.getId() << std::endl;
+                            std::cout << "Titular: " << cart.getTitular() << std::endl;
+                            std::cout << "Corretora: " << cart.getCorretora() << std::endl;
                         }
                         else
                         {
-                            cout << "Carteira com ID " << idConsulta << " nao encontrada." << endl;
+                            std::cout << "Carteira com ID " << idConsulta << " nao encontrada." << std::endl;
                         }
+                        break;
                     }
-                    break;
-
                     case 3:
                     {
                         int idEditar;
-                        string novoTitular;
-                        cout << "Digite o ID da carteira que deseja editar: ";
-                        cin >> idEditar;
+                        std::string novoTitular;
+                        std::cout << "Digite o ID da carteira que deseja editar: ";
+                        std::cin >> idEditar;
 
-                        cout << "Digite o novo nome do titular: ";
-                        cin.ignore(); // Limpa o buffer do teclado
-                        getline(cin, novoTitular);
+                        std::cout << "Digite o novo nome do titular: ";
+                        std::cin.ignore(); // Limpa o buffer do teclado
+                        std::getline(std::cin, novoTitular);
 
                         dao.editarCarteira(idEditar, novoTitular);
-                        cout << "Carteira editada." << endl;
+                        std::cout << "Carteira editada." << std::endl;
+                        break;
                     }
-                    break;
-
                     case 4:
                     {
                         int idExcluir;
-                        cout << "Digite o ID da carteira que deseja excluir: ";
-                        cin >> idExcluir;
+                        std::cout << "Digite o ID da carteira que deseja excluir: ";
+                        std::cin >> idExcluir;
 
                         dao.excluirCarteira(idExcluir);
-                        cout << "Carteira excluida." << endl;
+                        std::cout << "Carteira excluida." << std::endl;
+                        break;
                     }
-                    break;
-
                     case 0:
                         break;
                     default:
-                        cout << "Opcao invalida." << endl;
+                        std::cout << "Opcao invalida." << std::endl;
+                        break;
                     }
                 }
                 break;
             }
-
             case 2:
             {
                 int opcaoMov = -1;
@@ -115,7 +105,6 @@ int main()
 
                 while (opcaoMov != 0)
                 {
-
                     opcaoMov = MenuMovimentacao();
 
                     switch (opcaoMov)
@@ -129,7 +118,7 @@ int main()
                     case 0:
                         break;
                     default:
-                        cout << "Opcao invalida." << endl;
+                        std::cout << "Opcao invalida." << std::endl;
                     }
                 }
                 break;
@@ -141,7 +130,37 @@ int main()
                 while (opcaoRel != 0)
                 {
                     opcaoRel = MenuRelatorios();
-                    // Adicione as chamadas de funções aqui
+                    RelatorioLocal rel;
+
+                    switch (opcaoRel)
+                    {
+                    case 1:
+                        rel.listarCarteirasPorId();
+                        break;
+                    case 2:
+                        rel.listarCarteirasPorNome();
+                        break;
+                    case 3:
+                        int id;
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> id;
+                        rel.exibirSaldoCarteira(id);
+                        break;
+                    case 4:
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> id;
+                        rel.exibirHistoricoCarteira(id);
+                        break;
+                    case 5:
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> id;
+                        rel.exibirGanhoPerdaCarteira(id);
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        std::cout << "Opcao invalida." << std::endl;
+                    }
                 }
                 break;
             }
@@ -152,20 +171,34 @@ int main()
                 while (opcaoAjuda != 0)
                 {
                     opcaoAjuda = MenuAjuda();
-                    // Adicione ações aqui se quiser
+
+                    switch (opcaoAjuda)
+                    {
+                    case 1:
+                        mostrarAjuda();
+                        break;
+                    case 2:
+                        mostrarCreditos();
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        std::cout << "Opcao invalida." << std::endl;
+                    }
                 }
                 break;
             }
 
             case 0:
-                cout << "Saindo..." << endl;
+                std::cout << "Saindo..." << std::endl;
                 break;
 
             default:
-                cout << "Opcao invalida, tente novamente." << endl;
+                std::cout << "Opcao invalida, tente novamente." << std::endl;
             }
         }
     }
+
     else if (MenuGravacao() == 2)
     {
         int opcaoPrincipal = -1;
@@ -189,14 +222,14 @@ int main()
                     {
                     case 1:
                     {
-                        string nomeTitular, corretora;
+                        std::string nomeTitular, corretora;
 
-                        cout << "Nome do titular: ";
-                        cin.ignore(); // limpar buffer se necessário
-                        getline(cin, nomeTitular);
+                        std::cout << "Nome do titular: ";
+                        std::cin.ignore(); // limpar buffer se necessário
+                        getline(std::cin, nomeTitular);
 
-                        cout << "Corretora: ";
-                        getline(cin, corretora);
+                        std::cout << "Corretora: ";
+                        getline(std::cin, corretora);
 
                         CarteiraDAO_Remoto daoRemoto;
                         Carteira c(0, nomeTitular, corretora);
@@ -207,21 +240,21 @@ int main()
                     case 2:
                     {
                         int id;
-                        cout << "Digite o ID da carteira que deseja consultar: ";
-                        cin >> id;
+                        std::cout << "Digite o ID da carteira que deseja consultar: ";
+                        std::cin >> id;
 
                         CarteiraDAO_Remoto daoRemoto;
                         Carteira c = daoRemoto.consultarCarteira(id);
 
                         if (c.getId() != 0)
                         {
-                            cout << "ID: " << c.getId() << endl;
-                            cout << "Titular: " << c.getTitular() << endl;
-                            cout << "Corretora: " << c.getCorretora() << endl;
+                            std::cout << "ID: " << c.getId() << std::endl;
+                            std::cout << "Titular: " << c.getTitular() << std::endl;
+                            std::cout << "Corretora: " << c.getCorretora() << std::endl;
                         }
                         else
                         {
-                            cout << "Carteira não encontrada." << endl;
+                            std::cout << "Carteira não encontrada." << std::endl;
                         }
                     }
                     break;
@@ -229,17 +262,17 @@ int main()
                     case 3:
                     {
                         int id;
-                        string novoTitular, novaCorretora;
+                        std::string novoTitular, novaCorretora;
 
-                        cout << "Digite o ID da carteira que deseja editar: ";
-                        cin >> id;
-                        cin.ignore();
+                        std::cout << "Digite o ID da carteira que deseja editar: ";
+                        std::cin >> id;
+                        std::cin.ignore();
 
-                        cout << "Novo nome do titular: ";
-                        getline(cin, novoTitular);
+                        std::cout << "Novo nome do titular: ";
+                        getline(std::cin, novoTitular);
 
-                        cout << "Nova corretora: ";
-                        getline(cin, novaCorretora);
+                        std::cout << "Nova corretora: ";
+                        getline(std::cin, novaCorretora);
 
                         CarteiraDAO_Remoto daoRemoto;
                         daoRemoto.editarCarteira(id, novoTitular, novaCorretora);
@@ -249,8 +282,8 @@ int main()
                     case 4:
                     {
                         int id;
-                        cout << "Digite o ID da carteira que deseja excluir: ";
-                        cin >> id;
+                        std::cout << "Digite o ID da carteira que deseja excluir: ";
+                        std::cin >> id;
 
                         CarteiraDAO_Remoto daoRemoto;
                         daoRemoto.excluirCarteira(id);
@@ -261,7 +294,7 @@ int main()
                         break;
 
                     default:
-                        cout << "Opcao invalida." << endl;
+                        std::cout << "Opcao invalida." << std::endl;
                     }
                 }
                 break;
@@ -288,7 +321,7 @@ int main()
                     case 0:
                         break;
                     default:
-                        cout << "Opcao invalida." << endl;
+                        std::cout << "Opcao invalida." << std::endl;
                     }
                 }
                 break;
@@ -300,7 +333,30 @@ int main()
                 while (opcaoRel != 0)
                 {
                     opcaoRel = MenuRelatorios();
-                    // Adicione as chamadas de funções aqui
+                    RelatorioLocal rel;
+
+                    switch (opcaoRel)
+                    {
+                    case 1:
+                        
+                        break;
+                    case 2:
+                        
+                        break;
+                    case 3:
+                        
+                        break;
+                    case 4:
+                        
+                        break;
+                    case 5:
+                        
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        std::cout << "Opcao invalida." << std::endl;
+                    }
                 }
                 break;
             }
@@ -311,17 +367,30 @@ int main()
                 while (opcaoAjuda != 0)
                 {
                     opcaoAjuda = MenuAjuda();
-                    // Adicione ações aqui se quiser
+
+                    switch (opcaoAjuda)
+                    {
+                    case 1:
+                        mostrarAjuda();
+                        break;
+                    case 2:
+                        mostrarCreditos();
+                        break;
+                    case 0:
+                        break;
+                    default:
+                        std::cout << "Opcao invalida." << std::endl;
+                    }
                 }
                 break;
             }
 
             case 0:
-                cout << "Saindo..." << endl;
+                std::cout << "Saindo..." << std::endl;
                 break;
 
             default:
-                cout << "Opcao invalida, tente novamente." << endl;
+                std::cout << "Opcao invalida, tente novamente." << std::endl;
             }
         }
     }

@@ -1,11 +1,11 @@
+#include <mariadb/conncpp.hpp>
 #include "oraculo.hpp"
 #include "movimentacao.hpp"
 #include <iostream>
 #include <fstream>
 #include <ctime>
 #include <iomanip>
-#include <mariadb/conncpp.hpp>
-
+#include <memory>
 
 using namespace std;
 
@@ -148,69 +148,74 @@ void movimentacao::compraRemota()
     int idCarteira;
     double valorReais;
 
-    std::cout << "Digite o ID da carteira que deseja comprar: ";
-    std::cin >> idCarteira;
+    cout << "Digite o ID da carteira que deseja comprar: ";
+    cin >> idCarteira;
 
     try
     {
-        mariadb::Client client = mariadb::Client::create();
-        std::shared_ptr<mariadb::Connection> con = client->connect(
-            "jdbc:mariadb://localhost:3306/PooI_25_Yxx",
-            "seu_usuario",
-            "sua_senha");
+        // Alterado para obter o driver e a conexão corretamente
+        sql::Driver *driver = sql::mariadb::get_driver_instance();
+         std::shared_ptr<sql::Connection> conn(driver->connect(
+          "jdbc:mariadb://*****:3306/*****", //IP e user
+          "*******",  // usuário
+          "*******")); // senha
 
         // Verifica se carteira existe
-        std::shared_ptr<mariadb::Statement> pstmt = con->prepare(
-            "SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?");
-        pstmt->setInt(0, idCarteira);
-        std::shared_ptr<mariadb::ResultSet> res = pstmt->executeQuery();
+        std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?")); // Usado stmntCheckCarteira para clareza
+        stmntCheckCarteira->setInt(0, idCarteira); // Índices em 0
 
-        if (!res->next() || res->getInt("total") == 0)
+        std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery()); // Renomeado e envolvido em shared_ptr
+        
+        if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0) // Usado resCheckCarteira
         {
-            std::cout << "Carteira com ID " << idCarteira << " não encontrada." << std::endl;
+            cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
             return;
         }
 
         // Pega cotação mais recente
-        pstmt = con->prepare("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1");
-        res = pstmt->executeQuery();
-
+        std::shared_ptr<sql::PreparedStatement> stmntCotacao(conn->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1")); // Usado stmntCotacao
+        std::shared_ptr<sql::ResultSet> resCotacao(stmntCotacao->executeQuery()); // Usado resCotacao
+        
         double cotacao = 0;
-        if (res->next())
+        if (resCotacao->next()) // Usado resCotacao
         {
-            cotacao = res->getDouble("Cotacao");
+            cotacao = resCotacao->getDouble("Cotacao"); // Usado resCotacao
         }
         else
         {
-            std::cout << "Erro: Nenhuma cotação disponível no oráculo." << std::endl;
+            cout << "Erro: Nenhuma cotação disponível no oráculo." << endl;
             return;
         }
 
-        std::cout << "Cotação atual da FT Coin: R$ " << cotacao << std::endl;
-        std::cout << "Digite quanto deseja gastar em reais: R$ ";
-        std::cin >> valorReais;
+        cout << "Cotação atual da FT Coin: R$ " << cotacao << endl;
+        cout << "Digite quanto deseja gastar em reais: R$ ";
+        cin >> valorReais;
 
         if (valorReais <= 0)
         {
-            std::cout << "Valor inválido. Compra cancelada." << std::endl;
+            cout << "Valor inválido. Compra cancelada." << endl;
             return;
         }
 
         double quantidade = valorReais / cotacao;
 
         // Registra a movimentação de compra
-        pstmt = con->prepare(
-            "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) VALUES (?, CURDATE(), 'C', ?)");
-        pstmt->setInt(0, idCarteira);
-        pstmt->setDouble(1, quantidade);
-        pstmt->executeUpdate();
+        // As chamadas setInt/setDouble são para PreparedStatement, então a variável precisa ser PreparedStatement.
+        // A string SQL foi formatada para clareza e correção de espaços.
+        std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
+            "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
+            "VALUES (?, CURDATE(), 'C', ?)"
+        ));
+        stmntInsert->setInt(0, idCarteira);     // Índices em 0 para PreparedStatement
+        stmntInsert->setDouble(1, quantidade);
+        stmntInsert->executeUpdate(); // executeUpdate() é mais apropriado para INSERT
 
-        std::cout << "Compra registrada com sucesso!" << std::endl;
-        std::cout << "Você comprou " << quantidade << " FT Coins por R$ " << valorReais << std::endl;
+        cout << "Compra registrada com sucesso!" << endl;
+        cout << "Você comprou " << quantidade << " FT Coins por R$ " << valorReais << endl;
     }
-    catch (const mariadb::SQLException &e)
+    catch (const sql::SQLException &e)
     {
-        std::cerr << "Erro ao registrar compra: " << e.what() << std::endl;
+        cerr << "Erro ao registrar compra: " << e.what() << endl;
     }
 }
 
@@ -219,66 +224,69 @@ void movimentacao::vendaRemota()
     int idCarteira;
     double quantidade;
 
-    std::cout << "Digite o ID da carteira que deseja vender: ";
-    std::cin >> idCarteira;
+    cout << "Digite o ID da carteira que deseja vender: ";
+    cin >> idCarteira;
 
     try
     {
-        mariadb::Client client = mariadb::Client::create();
-        std::shared_ptr<mariadb::Connection> con = client->connect(
-            "jdbc:mariadb://localhost:3306/PooI_25_Yxx",
-            "seu_usuario",
-            "sua_senha");
+        // Alterado para obter o driver e a conexão corretamente
+        sql::Driver *driver = sql::mariadb::get_driver_instance();
+        std::shared_ptr<sql::Connection> conn(driver->connect(
+          "jdbc:mariadb://*****:3306/*****", //IP e user
+          "*******",  // usuário
+          "*******")); // senha
 
         // Verifica se carteira existe
-        std::shared_ptr<mariadb::Statement> pstmt = con->prepare(
-            "SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?");
-        pstmt->setInt(0, idCarteira);
-        std::shared_ptr<mariadb::ResultSet> res = pstmt->executeQuery();
+        std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
+        stmntCheckCarteira->setInt(0, idCarteira); // Índices em 0
 
-        if (!res->next() || res->getInt("total") == 0)
+        std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery()); // Renomeado e envolvido em shared_ptr
+
+        if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0) // Usado resCheckCarteira
         {
-            std::cout << "Carteira com ID " << idCarteira << " não encontrada." << std::endl;
+            cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
             return;
         }
 
         // Obtém a cotação mais recente
-        pstmt = con->prepare("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1");
-        res = pstmt->executeQuery();
+        std::shared_ptr<sql::PreparedStatement> stmntCotacao(conn->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1"));
+        std::shared_ptr<sql::ResultSet> resCotacao(stmntCotacao->executeQuery());
 
         double cotacao = 0;
-        if (res->next())
+        if (resCotacao->next())
         {
-            cotacao = res->getDouble("Cotacao");
+            cotacao = resCotacao->getDouble("Cotacao");
         }
         else
         {
-            std::cout << "Erro: Nenhuma cotação disponível no oráculo." << std::endl;
+            cout << "Erro: Nenhuma cotação disponível no oráculo." << endl;
             return;
         }
 
-        std::cout << "Cotação atual da FT Coin: R$ " << cotacao << std::endl;
-        std::cout << "Digite quantas FT Coins deseja vender: ";
-        std::cin >> quantidade;
+        cout << "Cotação atual da FT Coin: R$ " << cotacao << endl;
+        cout << "Digite quantas FT Coins deseja vender: ";
+        cin >> quantidade;
 
         if (quantidade <= 0)
         {
-            std::cout << "Quantidade inválida. Venda cancelada." << std::endl;
+            cout << "Quantidade inválida. Venda cancelada." << endl;
             return;
         }
 
         // Registra a movimentação de venda
-        pstmt = con->prepare(
-            "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) VALUES (?, CURDATE(), 'V', ?)");
-        pstmt->setInt(0, idCarteira);
-        pstmt->setDouble(1, quantidade);
-        pstmt->executeUpdate();
+        std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
+            "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
+            "VALUES (?, CURDATE(), 'V', ?)"
+        ));
+        stmntInsert->setInt(0, idCarteira);
+        stmntInsert->setDouble(1, quantidade);
+        stmntInsert->executeUpdate();
 
-        std::cout << "Venda registrada com sucesso!" << std::endl;
-        std::cout << "Você vendeu " << quantidade << " FT Coins a R$ " << cotacao << " cada." << std::endl;
+        cout << "Venda registrada com sucesso!" << endl;
+        cout << "Você vendeu " << quantidade << " FT Coins a R$ " << cotacao << " cada." << endl;
     }
-    catch (const mariadb::SQLException &e)
+    catch (const sql::SQLException &e)
     {
-        std::cerr << "Erro ao registrar venda: " << e.what() << std::endl;
+        cerr << "Erro ao registrar venda: " << e.what() << endl;
     }
 }

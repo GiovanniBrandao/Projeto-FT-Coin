@@ -1,9 +1,8 @@
+#include <mariadb/conncpp.hpp>
 #include "carteira.hpp"
-
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <mariadb/conncpp.hpp>
 
 using namespace std;
 
@@ -210,79 +209,63 @@ void CarteiraDAO_Local::excluirCarteira(int id)
       std::cout << "Carteira com ID " << id << " não foi encontrada." << std::endl;
 }
 
-void CarteiraDAO_Remoto::NovaCarteiraRemoto(const string &nome_titular, const string &corretora)
+void CarteiraDAO_Remoto::criarCarteira(const Carteira &carteira)
 {
    try
    {
-      // Criação do cliente MariaDB
-      mariadb::Client *client = mariadb::Client::create();
-
-      // Conexão com o banco de dados
-      shared_ptr<mariadb::Connection> conn = client->connect(
-          "jdbc:mariadb://localhost:3306/PooI_25_Yxx", // conexão completa
-          "seu_usuario",
-          "sua_senha");
+      sql::Driver *driver = sql::mariadb::get_driver_instance();
+      std::shared_ptr<sql::Connection> conn(driver->connect(
+          "jdbc:mariadb://*****:3306/*****", // IP e user
+          "*******",                         // usuário
+          "*******"));                       // senha
 
       // Preparar a inserção
-      shared_ptr<mariadb::PreparedStatement> pstmt =
-          conn->prepare("INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)");
+      std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement("INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)"));
 
-      pstmt->setString(0, nome_titular);
-      pstmt->setString(1, corretora);
-      pstmt->execute();
+      stmntInsert->setString(0, carteira.getTitular());
+      stmntInsert->setString(1, carteira.getCorretora());
+      stmntInsert->execute(); // execute() é apropriado para INSERT sem retorno de ResultSet
 
-      // Buscar o ID gerado
-      shared_ptr<mariadb::Statement> stmt = conn->createStatement();
-      shared_ptr<mariadb::ResultSet> res = stmt->executeQuery("SELECT LAST_INSERT_ID() AS id");
+      // Renomeado para evitar conflito de nome com o stmnt anterior
+      std::shared_ptr<sql::Statement> stmntLastId(conn->createStatement());
+      std::shared_ptr<sql::ResultSet> resLastId(stmntLastId->executeQuery("SELECT LAST_INSERT_ID() AS id"));
 
-      if (res->next())
+      if (resLastId->next())
       {
-         int idCriado = res->getInt("id");
-         cout << "\nCarteira criada com sucesso" << endl;
-         cout << "ID da nova carteira: " << idCriado << endl;
+         int idCriado = resLastId->getInt("id");
+         std::cout << "\nCarteira criada com sucesso" << std::endl;
+         std::cout << "ID da nova carteira: " << idCriado << std::endl;
       }
    }
-   catch (const mariadb::SQLException &e)
+   catch (const sql::SQLException &e)
    {
-      cerr << "Erro ao criar carteira no banco: " << e.what() << endl;
+      std::cerr << "Erro ao criar carteira no banco: " << e.what() << std::endl;
    }
 }
 
-Carteira CarteiraDAO_Remoto::CarteiraDAO_Remoto::consultarCarteira(int id)
-
+Carteira CarteiraDAO_Remoto::consultarCarteira(int id)
 {
    try
    {
-      // Criação do cliente MariaDB
-      mariadb::Client *client = mariadb::Client::create();
-
-      // Conexão com o banco de dados
-      shared_ptr<mariadb::Connection> conn = client->connect(
-          "jdbc:mariadb://localhost:3306/PooI_25_Yxx", // substitua com seu banco
-          "seu_usuario", "sua_senha");
+      sql::Driver *driver = sql::mariadb::get_driver_instance();
+      std::shared_ptr<sql::Connection> conn(driver->connect(
+          "jdbc:mariadb://*****:3306/*****", // IP e user
+          "*******",                         // usuário
+          "*******"));                       // senha
 
       // Preparar a consulta
-      shared_ptr<mariadb::PreparedStatement> pstmt =
-          conn->prepare("SELECT * FROM CARTEIRA WHERE IdCarteira = ?");
-      pstmt->setInt(0, id); // índices começam em 0 no MariaDB Connector
+      std::shared_ptr<sql::PreparedStatement> stmntSelect(conn->prepareStatement("SELECT * FROM CARTEIRA WHERE IdCarteira = ?"));
+      stmntSelect->setInt(0, id); // <-- CORREÇÃO: Definir o parâmetro para a consulta
 
       // Executar e obter resultado
-      shared_ptr<mariadb::ResultSet> res = pstmt->executeQuery();
+      std::shared_ptr<sql::ResultSet> resSelect(stmntSelect->executeQuery()); // CORREÇÃO: Inicialização correta de shared_ptr
 
-      if (res->next())
+      if (resSelect->next())
       {
          Carteira carteira;
-         carteira.setId(res->getInt("IdCarteira"));
-         carteira.setTitular(res->getString("Titular"));
-         carteira.setCorretora(res->getString("Corretora"));
-
-         // Opcional: imprimir
-         cout << "----------------------------------" << endl;
-         cout << "ID: " << carteira.getId() << endl;
-         cout << "Nome: " << carteira.getTitular() << endl;
-         cout << "Corretora: " << carteira.getCorretora() << endl;
-
-         return carteira;
+         carteira.setId(resSelect->getInt("IdCarteira"));
+         carteira.setTitular(std::string(resSelect->getString("Titular").c_str()));
+         carteira.setCorretora(std::string(resSelect->getString("Corretora").c_str()));
       }
       else
       {
@@ -290,39 +273,41 @@ Carteira CarteiraDAO_Remoto::CarteiraDAO_Remoto::consultarCarteira(int id)
          return Carteira(); // carteira vazia
       }
    }
-   catch (const mariadb::SQLException &e)
+   catch (const sql::SQLException &e)
    {
       cerr << "Erro ao consultar carteira no banco: " << e.what() << endl;
       return Carteira(); // em caso de erro
    }
+
+   return Carteira(); // Retorno padrão caso nenhum if/else retorne
 }
 
 void CarteiraDAO_Remoto::editarCarteira(int id, const std::string &novoTitular, const std::string &novaCorretora)
 {
-   try {
-      // Criar cliente e conexão
-      mariadb::Client client = mariadb::Client::create();
-      std::shared_ptr<mariadb::Connection> conn = client->connect(
-         "jdbc:mariadb://localhost:3306/PooI_25_Yxx", // URL com nome do banco
-         "seu_usuario", "sua_senha"
-      );
+   try
+   {
+      sql::Driver *driver = sql::mariadb::get_driver_instance();
+      std::shared_ptr<sql::Connection> conn(driver->connect(
+          "jdbc:mariadb://*****:3306/*****", // IP e user
+          "*******",                         // usuário
+          "*******"));                       // senha
 
       // Preparar e executar comando SQL
-      std::shared_ptr<mariadb::Statement> pstmt = conn->prepare(
-         "UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"
-      );
-      pstmt->setString(0, novoTitular);
-      pstmt->setString(1, novaCorretora);
-      pstmt->setInt(2, id);
+      std::shared_ptr<sql::PreparedStatement> stmntUpdate(conn->prepareStatement("UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"));
 
-      int linhasAfetadas = pstmt->executeUpdate();
+      stmntUpdate->setString(0, novoTitular);
+      stmntUpdate->setString(1, novaCorretora);
+      stmntUpdate->setInt(2, id);
+
+      int linhasAfetadas = stmntUpdate->executeUpdate();
 
       if (linhasAfetadas > 0)
          std::cout << "Carteira ID " << id << " atualizada com sucesso!" << std::endl;
       else
          std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
-
-   } catch (const mariadb::SQLException &e) {
+   }
+   catch (const sql::SQLException &e)
+   {
       std::cerr << "Erro ao editar carteira no banco: " << e.what() << std::endl;
    }
 }
@@ -332,17 +317,16 @@ void CarteiraDAO_Remoto::excluirCarteira(int id)
    try
    {
       // Criar cliente e conexão com banco
-      mariadb::Client client = mariadb::Client::create();
-      std::shared_ptr<mariadb::Connection> conn = client->connect(
-          "jdbc:mariadb://localhost:3306/PooI_25_Yxx", // URL completa com banco
-          "seu_usuario", "sua_senha");
+      sql::Driver *driver = sql::mariadb::get_driver_instance();
+      std::shared_ptr<sql::Connection> conn(driver->connect(
+          "jdbc:mariadb://*****:3306/*****", // IP e user
+          "*******",                         // usuário
+          "*******"));                       // senha
 
-      // Preparar e executar DELETE
-      std::shared_ptr<mariadb::Statement> pstmt = conn->prepare(
-          "DELETE FROM CARTEIRA WHERE IdCarteira = ?");
-      pstmt->setInt(0, id); // Índices começam em 0
+      std::shared_ptr<sql::PreparedStatement> stmntDelete(conn->prepareStatement("DELETE FROM CARTEIRA WHERE IdCarteira = ?"));
+      stmntDelete->setInt(0, id);
 
-      int linhasAfetadas = pstmt->executeUpdate();
+      int linhasAfetadas = stmntDelete->executeUpdate();
 
       if (linhasAfetadas > 0)
       {
@@ -353,7 +337,7 @@ void CarteiraDAO_Remoto::excluirCarteira(int id)
          std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
       }
    }
-   catch (const mariadb::SQLException &e)
+   catch (const sql::SQLException &e)
    {
       std::cerr << "Erro ao excluir carteira no banco: " << e.what() << std::endl;
    }

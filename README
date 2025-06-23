@@ -1,19 +1,110 @@
+# FT Coin Wallet - Sistema de Gerenciamento de Carteiras e Movimentações
+
+## Descrição do Projeto
+
+O **FT Coin Wallet** é um sistema desenvolvido em C++ para o gerenciamento de carteiras de criptomoedas fictícias ("FT Coins") e suas movimentações financeiras (compra e venda). O projeto oferece duas opções de persistência de dados: armazenamento local em arquivos de texto ou armazenamento remoto em um banco de dados MariaDB.
+
+Este sistema foi projetado com foco em demonstrar conceitos de Programação Orientada a Objetos (POO), persistência de dados (local e remota) e interação com banco de dados em C++.
+
+Funcionalidades principais:
+
+* **Gerenciamento de Carteiras:** Criação, consulta, edição e exclusão de carteiras.
+* **Gerenciamento de Movimentações:** Registro de operações de compra e venda de FT Coins.
+* **Relatórios:** Visualização de carteiras ordenadas, saldo atual, histórico de movimentações e cálculo de ganho/perda por carteira.
+* **Armazenamento Flexível:** Escolha entre gravar dados localmente em arquivos `.txt` ou remotamente em um servidor MariaDB.
+
+## Requisitos
+
+Esta aplicação é destinada a funcinar em ambientes Linux
+Para compilar e utilizar este projeto, você precisará da seguinte biblioteca em seu ambiente Linux (testado em Linux Mint 22, baseado em Ubuntu 24.04).
+
+### Compilação:
+
+* **MariaDB Connector/C++:** Biblioteca para conexão com o banco de dados MariaDB.
+    * O projeto foi testado com a versão `1.1.6`.
+    * Para instalar:
+        1.  Baixe o arquivo `.deb` compatível com sua distribuição do site oficial do MariaDB;
+        2.  Navegue até o diretório de download no terminal;
+        3.  Instale o pacote;
+        4.  Corrija possíveis dependências.
+
+### Utilização (para modo remoto):
+
+* **Servidor MariaDB:** Um servidor MariaDB acessível para o qual o sistema possa se conectar.
+    * **As credenciais de conexão ao banco de dados estão inseridas diretamente no código-fonte e devem ser alteradas pelo usuário.**
+    * Certifique-se de que o banco de dados e as tabelas necessárias (`CARTEIRA`, `MOVIMENTACAO`, `ORACULO`) existam e estejam configuradas corretamente.
+    * As tabelas devem utilizar o tipo de dados `decimal` para valores monetários e `varchar` para strings.
+
+## Como Compilar e Executar
+
+1.  **Edite as Credenciais do Banco de Dados:**
+    Antes de compilar, você **deve** editar as credenciais do banco de dados no código-fonte.
+    Abra os seguintes arquivos e procure por linhas comentadas que indicam onde alterar o IP do servidor, nome do banco de dados, usuário e senha:
+
+    * `ServerDBConnection.h`
+    * `ServerDBConnection.cpp`
+    * `carteira.cpp`
+    * `movimentacao.cpp`
+    * `relatorio.cpp`
+
+    **Exemplo de como encontrar e alterar as credenciais:**
+
+    Em `carteira.cpp`, por exemplo, você encontrará blocos de código como este:
+
+    ```cpp
+    sql::Driver *driver = sql::mariadb::get_driver_instance();
+    std::shared_ptr<sql::Connection> conn(driver->connect(
+        "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
+        "*******",  // Altere o usuário
+        "*******")); // Altere a senha
+    ```
+    Altere as strings com asteriscos para suas credenciais reais do banco de dados.
+    A porta utilizada no projeto foi a porta padrão para conexões em mariadb.
 
 
-Compilação
+3.  **Abra o terminal na pasta do projeto e compile o projeto:**
+    Utilize o `g++` com os seguintes arquivos e flags:
 
-O programa conta com um arquivo "cmake" que facilita a compitação. As opções diponíveis para o programa são;
+    ```bash
+    g++ main.cpp carteira.cpp movimentacao.cpp relatorio.cpp interface.cpp ajuda.cpp -o FTCoin -lmariadbcpp -lstdc++fs
+    ```
+    * `-o FTCoin`: Define o nome do executável de saída como `FTCoin`.
+    * `-lmariadbcpp`: Linka a biblioteca do MariaDB Connector/C++.
 
-criar uma pasta de build:
-mkdir build && cd build
+    Se a compilação for bem-sucedida, um arquivo executável chamado `FTCoin` será criado no diretório do seu projeto.
 
-gerar um arquivo de compilação
-cmake ..
+4.  **Execute o Programa:**
+    Para iniciar o sistema, execute o arquivo compilado:
 
-compilar o programa
-make
+    ```bash
+    ./FTCoin
+    ```
 
-executar o programa
-/.carteira_virtual
+    Ao iniciar, o programa perguntará se você deseja usar a gravação "Local" ou "Remota".
 
-g++ carteira.cpp interface.cpp main.cpp movimentacao.cpp -o teste
+---
+
+## Estrutura do Código (Visão Geral)
+
+* `main.cpp`: Ponto de entrada do programa, lida com a seleção do modo de gravação (local/remoto) e a navegação pelos menus.
+* `interface.hpp`/`interface.cpp`: Contém as funções para exibir os menus do sistema.
+* `carteira.hpp`/`carteira.cpp`: Define a classe `Carteira` e as classes `CarteiraDAO_Local` e `CarteiraDAO_Remoto` para persistência de dados de carteiras.
+* `movimentacao.hpp`/`movimentacao.cpp`: Define a classe `movimentacao` e seus métodos para registrar compras e vendas, com modos local e remoto.
+* `relatorio.hpp`/`relatorio.cpp`: Define as classes `RelatorioLocal` e `RelatorioRemoto` para gerar diversos relatórios sobre carteiras e movimentações.
+* `oraculo.hpp`: Define a classe `oraculo` que simula um oráculo de cotações para a FT Coin.
+* `ajuda.hpp`/`ajuda.cpp`: (Assumindo que existem) Contém funções para exibir informações de ajuda e créditos do projeto.
+
+---
+
+## Contribuição e Licença
+
+Este projeto é parte de um trabalho acadêmico e não se destina a ser uma aplicação real. Sinta-se à vontade para analisar e aprender com o código.
+
+**Copyright (C) 2024 Andre F. de Angelis (Professor)**
+**Desenvolvido por:**
+
+- Giovanni da Silva Virginio Brandão
+- Murillo Martins Proveza
+- Nathan Damico Cardoso
+- Thomaz Henrique Pedro Miranda
+- Victor Hugo Silva
