@@ -200,8 +200,6 @@ void movimentacao::compraRemota()
         double quantidade = valorReais / cotacao;
 
         // Registra a movimentação de compra
-        // As chamadas setInt/setDouble são para PreparedStatement, então a variável precisa ser PreparedStatement.
-        // A string SQL foi formatada para clareza e correção de espaços.
         std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
             "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
             "VALUES (?, CURDATE(), 'C', ?)"

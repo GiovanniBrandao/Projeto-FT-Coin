@@ -215,16 +215,16 @@ void CarteiraDAO_Remoto::criarCarteira(const Carteira &carteira)
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", // IP e user
-          "*******",                         // usuário
-          "*******"));                       // senha
+          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
+          "PooI_25_A01",                                    // Altere o usuário
+          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
 
       // Preparar a inserção
       std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement("INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)"));
 
       stmntInsert->setString(0, carteira.getTitular());
       stmntInsert->setString(1, carteira.getCorretora());
-      stmntInsert->execute(); // execute() é apropriado para INSERT sem retorno de ResultSet
+      stmntInsert->execute();
 
       // Renomeado para evitar conflito de nome com o stmnt anterior
       std::shared_ptr<sql::Statement> stmntLastId(conn->createStatement());
@@ -249,9 +249,9 @@ Carteira CarteiraDAO_Remoto::consultarCarteira(int id)
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", // IP e user
-          "*******",                         // usuário
-          "*******"));                       // senha
+          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
+          "PooI_25_A01",                                    // Altere o usuário
+          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
 
       // Preparar a consulta
       std::shared_ptr<sql::PreparedStatement> stmntSelect(conn->prepareStatement("SELECT * FROM CARTEIRA WHERE IdCarteira = ?"));
@@ -288,9 +288,9 @@ void CarteiraDAO_Remoto::editarCarteira(int id, const std::string &novoTitular, 
    {
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", // IP e user
-          "*******",                         // usuário
-          "*******"));                       // senha
+          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
+          "PooI_25_A01",                                    // Altere o usuário
+          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
 
       // Preparar e executar comando SQL
       std::shared_ptr<sql::PreparedStatement> stmntUpdate(conn->prepareStatement("UPDATE CARTEIRA SET Titular = ?, Corretora = ? WHERE IdCarteira = ?"));
@@ -316,12 +316,11 @@ void CarteiraDAO_Remoto::excluirCarteira(int id)
 {
    try
    {
-      // Criar cliente e conexão com banco
       sql::Driver *driver = sql::mariadb::get_driver_instance();
       std::shared_ptr<sql::Connection> conn(driver->connect(
-          "jdbc:mariadb://*****:3306/*****", // IP e user
-          "*******",                         // usuário
-          "*******"));                       // senha
+          "jdbc:mariadb://143.106.243.64:3306/PooI_25_A01", // Altere o IP/Porta/Nome do Banco
+          "PooI_25_A01",                                    // Altere o usuário
+          "5DUwFPhDdR"));                                   // Altere a senha                      // senha
 
       std::shared_ptr<sql::PreparedStatement> stmntDelete(conn->prepareStatement("DELETE FROM CARTEIRA WHERE IdCarteira = ?"));
       stmntDelete->setInt(0, id);
