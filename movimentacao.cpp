@@ -1,16 +1,16 @@
 #include <mariadb/conncpp.hpp>
-#include "oraculo.hpp"         
-#include "movimentacao.hpp"    
-#include <iostream>            
-#include <fstream>             
-#include <ctime>               
-#include <iomanip>             
-#include <memory>              
-#include <stdexcept>           
+#include "oraculo.hpp"
+#include "movimentacao.hpp"
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <iomanip>
+#include <memory>
+#include <stdexcept>
 
 using namespace std;
 
-int gerarNovoIdMovimentoLocal_Helper()
+int movimentacaoDAO_Local::gerarNovoIdMovimentoLocal_Helper()
 {
     int novoIdMov = 1;
     ifstream movLeitura("movimentacoes.txt");
@@ -36,7 +36,7 @@ int gerarNovoIdMovimentoLocal_Helper()
     return novoIdMov;
 }
 
-string obterDataAtualFormatada_Helper()
+string movimentacaoDAO_Local::obterDataAtualFormatada_Helper()
 {
     time_t t = time(nullptr);
     tm *now = localtime(&t);
@@ -45,25 +45,24 @@ string obterDataAtualFormatada_Helper()
     return string(bufferData);
 }
 
-
-void movimentacaoDAO_Local::compraLocal(const movimentacao &mov) // Recebe o DTO
+void movimentacaoDAO_Local::compraLocal(const movimentacao &mov) 
 {
     oraculo oracle;
     double cotacaoAtual = oracle.cotacao;
 
     int idCarteira = mov.getIdCarteira();
-    double quantidadeFTCoins = mov.getQuantidade(); // Assumindo que o DTO tem a quantidade de FT Coins
+    double quantidadeFTCoins = mov.getQuantidade();
 
-    if (quantidadeFTCoins <= 0) // Valida o que veio do DTO
+    if (quantidadeFTCoins <= 0)
     {
         cout << "Quantidade invalida. A compra não pode ser realizada." << endl;
         return;
     }
 
-    double valorTotalReais = quantidadeFTCoins * cotacaoAtual; // Cálculo na DAO
+    double valorTotalReais = quantidadeFTCoins * cotacaoAtual;
 
-    int novoIdMov = gerarNovoIdMovimentoLocal_Helper();  // Usa auxiliar
-    string dataAtual = obterDataAtualFormatada_Helper(); // Usa auxiliar
+    int novoIdMov = movimentacaoDAO_Local::gerarNovoIdMovimentoLocal_Helper();
+    string dataAtual = movimentacaoDAO_Local::obterDataAtualFormatada_Helper();
 
     ofstream movFile("movimentacoes.txt", ios::app);
     if (movFile.is_open())
@@ -86,22 +85,22 @@ void movimentacaoDAO_Local::compraLocal(const movimentacao &mov) // Recebe o DTO
     }
 }
 
-void movimentacaoDAO_Local::vendaLocal(const movimentacao &mov) // Recebe o DTO
+void movimentacaoDAO_Local::vendaLocal(const movimentacao &mov) 
 {
     oraculo oracle;
     double cotacaoAtual = oracle.cotacao;
 
     int idCarteira = mov.getIdCarteira();
-    double quantidadeFTCoins = mov.getQuantidade(); // Assumindo que o DTO tem a quantidade de FT Coins
+    double quantidadeFTCoins = mov.getQuantidade(); 
 
-    if (quantidadeFTCoins <= 0) // Valida o que veio do DTO
+    if (quantidadeFTCoins <= 0) 
     {
         cout << "Quantidade invalida. A venda não pode ser realizada." << endl;
         return;
     }
 
-    int novoIdMov = gerarNovoIdMovimentoLocal_Helper();
-    string dataAtual = obterDataAtualFormatada_Helper();
+    int novoIdMov = movimentacaoDAO_Local::gerarNovoIdMovimentoLocal_Helper();
+    string dataAtual = movimentacaoDAO_Local::obterDataAtualFormatada_Helper();
 
     ofstream movFile("movimentacoes.txt", ios::app);
     if (movFile.is_open())
@@ -115,17 +114,16 @@ void movimentacaoDAO_Local::vendaLocal(const movimentacao &mov) // Recebe o DTO
 
         movFile.close();
 
-        double valorTotalReais = quantidadeFTCoins * cotacaoAtual; // <-- NOVO CÁLCULO AQUI!
+        double valorTotalReais = quantidadeFTCoins * cotacaoAtual; 
 
         cout << "Venda registrada com sucesso" << endl;
-        cout << "Voce vendeu " << quantidadeFTCoins << " FT Coins por R$ " << valorTotalReais << "." << std::endl; // <-- USO AQUI!
+        cout << "Voce vendeu " << quantidadeFTCoins << " FT Coins por R$ " << valorTotalReais << "." << std::endl;
     }
     else
     {
         cerr << "Erro ao registrar movimentacao." << endl;
     }
 }
-
 
 void movimentacaoDAO_Remoto::compraRemota(const movimentacao &mov)
 {
@@ -191,7 +189,7 @@ void movimentacaoDAO_Remoto::compraRemota(const movimentacao &mov)
     }
 }
 
-void movimentacaoDAO_Remoto::vendaRemota(const movimentacao &mov) // Recebe o DTO
+void movimentacaoDAO_Remoto::vendaRemota(const movimentacao &mov) 
 {
     int idCarteira = mov.getIdCarteira();
     double quantidadeFTCoins = mov.getQuantidade();
@@ -203,7 +201,6 @@ void movimentacaoDAO_Remoto::vendaRemota(const movimentacao &mov) // Recebe o DT
             "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
             "*******",                             // Altere o usuário
             "*******"));                           // Altere a senha
-
 
         // Verifica se carteira existe
         std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
