@@ -36,8 +36,8 @@ int main()
                         std::string nomeTitular, corretora;
                         std::cout << "----------------------------------" << std::endl;
                         std::cout << "Nome do titular: ";
-                        std::cout << "----------------------------------" << std::endl;
                         std::cin >> nomeTitular;
+                        std::cout << "----------------------------------" << std::endl;
                         std::cout << "Corretora: ";
                         std::cin >> corretora;
 
@@ -59,7 +59,6 @@ int main()
                             std::cout << "ID: " << cart.getId() << std::endl;
                             std::cout << "Titular: " << cart.getTitular() << std::endl;
                             std::cout << "Corretora: " << cart.getCorretora() << std::endl;
-                            std::cout << "----------------------------------" << std::endl;
                         }
                         else
                         {
@@ -79,7 +78,6 @@ int main()
                         std::getline(std::cin, novoTitular);
                         std::cout << "----------------------------------" << std::endl;
                         dao.editarCarteira(idEditar, novoTitular);
-                        std::cout << "Carteira editada." << std::endl;
                         break;
                     }
                     case 4:
@@ -89,7 +87,6 @@ int main()
                         std::cin >> idExcluir;
 
                         dao.excluirCarteira(idExcluir);
-                        std::cout << "Carteira excluida." << std::endl;
                         break;
                     }
                     case 0:

@@ -2,6 +2,7 @@
 
 *.txt
 *.exe
+*.o
 
 # pasta do vscode
 

@@ -42,9 +42,6 @@ Autores:
 Disciplina:
 Programação Orientada a Objetos I
 
-Instituição:
-Universidade XYZ
-
 Versão: 1.0.0 - Junho/2025
 Copyright (c) 2025
 Todos os direitos reservados.
