@@ -1,37 +1,17 @@
 #include <mariadb/conncpp.hpp>
-#include "oraculo.hpp"
-#include "movimentacao.hpp"
-#include <iostream>
-#include <fstream>
-#include <ctime>
-#include <iomanip>
-#include <memory>
+#include "oraculo.hpp"         
+#include "movimentacao.hpp"    
+#include <iostream>            
+#include <fstream>             
+#include <ctime>               
+#include <iomanip>             
+#include <memory>              
+#include <stdexcept>           
 
 using namespace std;
 
-void movimentacao::compraLocal()
+int gerarNovoIdMovimentoLocal_Helper()
 {
-    oraculo oraculo;
-    int idAlvo;
-    double valorReais;
-    double cotacaoAtual = oraculo.cotacao;
-
-    cout << "Digite o ID da carteira que deseja comprar: ";
-    cin >> idAlvo;
-
-    cout << "Cotacao atual da FT Coin: " << cotacaoAtual << endl;
-    cout << "Digite quanto deseja gastar em reais: R$ ";
-    cin >> valorReais;
-
-    if (valorReais <= 0)
-    {
-        cout << "Valor inválido. A compra não pode ser realizada." << endl;
-        return;
-    }
-
-    double moedasCompradas = valorReais / cotacaoAtual;
-
-    // Gerar ID para movimentação
     int novoIdMov = 1;
     ifstream movLeitura("movimentacoes.txt");
     string linhaMov;
@@ -53,88 +33,52 @@ void movimentacao::compraLocal()
         }
     }
     movLeitura.close();
+    return novoIdMov;
+}
 
-    // Pegar data atual formatada YYYY-MM-DD
+string obterDataAtualFormatada_Helper()
+{
     time_t t = time(nullptr);
     tm *now = localtime(&t);
     char bufferData[11];
     strftime(bufferData, sizeof(bufferData), "%Y-%m-%d", now);
-
-    // Registrar movimentação
-    ofstream movFile("movimentacoes.txt", ios::app);
-    if (movFile.is_open())
-    {
-        movFile << "IDCarteira: " << idAlvo
-                << " | IDMov: " << novoIdMov
-                << " | Data: " << bufferData
-                << " | Tipo: C"
-                << " | Quantidade: " << setprecision(6) << moedasCompradas
-                << endl;
-
-        movFile.close();
-
-        cout << "Compra realizada com sucesso" << endl;
-        cout << "Você comprou " << moedasCompradas << " FT Coins por R$ " << valorReais << endl;
-    }
-    else
-    {
-        cerr << "Erro ao registrar movimentação." << endl;
-    }
+    return string(bufferData);
 }
 
-void movimentacao::vendaLocal()
+
+void movimentacaoDAO_Local::compraLocal(const movimentacao &mov) // Recebe o DTO
 {
-    oraculo oraculo;
-    int idAlvo;
-    double quantidadeVender;
-    double cotacaoAtual = oraculo.cotacao;
+    oraculo oracle;
+    double cotacaoAtual = oracle.cotacao;
 
-    cout << "Digite o ID da carteira que deseja vender: ";
-    cin >> idAlvo;
+    int idCarteira = mov.getIdCarteira();
+    double quantidadeFTCoins = mov.getQuantidade(); // Assumindo que o DTO tem a quantidade de FT Coins
 
-    cout << "Cotacao atual da FT Coin: " << cotacaoAtual << endl;
-    cout << "Digite quantas FT Coins deseja vender: ";
-    cin >> quantidadeVender;
-
-    if (quantidadeVender <= 0)
+    if (quantidadeFTCoins <= 0) // Valida o que veio do DTO
     {
-        cout << "Quantidade inválida. A venda não pode ser realizada." << endl;
+        cout << "Quantidade invalida. A compra não pode ser realizada." << endl;
         return;
     }
 
-    // Gerar novo ID de movimentação
-    int novoIdMov = 1;
-    ifstream movLeitura("movimentacoes.txt");
-    string linhaMov;
-    while (getline(movLeitura, linhaMov))
-    {
-        size_t posIdMov = linhaMov.find("IDMov: ");
-        if (posIdMov != string::npos)
-        {
-            int idMovTmp = stoi(linhaMov.substr(posIdMov + 7));
-            if (idMovTmp >= novoIdMov)
-                novoIdMov = idMovTmp + 1;
-        }
-    }
-    movLeitura.close();
+    double valorTotalReais = quantidadeFTCoins * cotacaoAtual; // Cálculo na DAO
 
-    // Registrar movimentação no arquivo
+    int novoIdMov = gerarNovoIdMovimentoLocal_Helper();  // Usa auxiliar
+    string dataAtual = obterDataAtualFormatada_Helper(); // Usa auxiliar
+
     ofstream movFile("movimentacoes.txt", ios::app);
     if (movFile.is_open())
     {
-        string data = "2025"; // ou gere a data atual com ctime
-
-        movFile << "IDCarteira: " << idAlvo
+        movFile << "IDCarteira: " << idCarteira
                 << " | IDMov: " << novoIdMov
-                << " | Data: " << data
-                << " | Tipo: V"
-                << " | Quantidade: " << quantidadeVender
+                << " | Data: " << dataAtual
+                << " | Tipo: C"
+                << " | Quantidade: " << setprecision(6) << quantidadeFTCoins
                 << endl;
 
         movFile.close();
 
-        cout << "Venda registrada com sucesso" << endl;
-        cout << "Voce vendeu " << quantidadeVender << " FT Coins." << endl;
+        cout << "Compra local registrada com sucesso" << endl;
+        cout << "Voce comprou " << quantidadeFTCoins << " FT Coins por R$ " << valorTotalReais << endl;
     }
     else
     {
@@ -142,37 +86,74 @@ void movimentacao::vendaLocal()
     }
 }
 
-void movimentacao::compraRemota()
+void movimentacaoDAO_Local::vendaLocal(const movimentacao &mov) // Recebe o DTO
 {
-    int idCarteira;
-    double valorReais;
+    oraculo oracle;
+    double cotacaoAtual = oracle.cotacao;
 
-    cout << "Digite o ID da carteira que deseja comprar: ";
-    cin >> idCarteira;
+    int idCarteira = mov.getIdCarteira();
+    double quantidadeFTCoins = mov.getQuantidade(); // Assumindo que o DTO tem a quantidade de FT Coins
+
+    if (quantidadeFTCoins <= 0) // Valida o que veio do DTO
+    {
+        cout << "Quantidade invalida. A venda não pode ser realizada." << endl;
+        return;
+    }
+
+    int novoIdMov = gerarNovoIdMovimentoLocal_Helper();
+    string dataAtual = obterDataAtualFormatada_Helper();
+
+    ofstream movFile("movimentacoes.txt", ios::app);
+    if (movFile.is_open())
+    {
+        movFile << "IDCarteira: " << idCarteira
+                << " | IDMov: " << novoIdMov
+                << " | Data: " << dataAtual
+                << " | Tipo: V"
+                << " | Quantidade: " << quantidadeFTCoins
+                << endl;
+
+        movFile.close();
+
+        double valorTotalReais = quantidadeFTCoins * cotacaoAtual; // <-- NOVO CÁLCULO AQUI!
+
+        cout << "Venda registrada com sucesso" << endl;
+        cout << "Voce vendeu " << quantidadeFTCoins << " FT Coins por R$ " << valorTotalReais << "." << std::endl; // <-- USO AQUI!
+    }
+    else
+    {
+        cerr << "Erro ao registrar movimentacao." << endl;
+    }
+}
+
+
+void movimentacaoDAO_Remoto::compraRemota(const movimentacao &mov)
+{
+    int idCarteira = mov.getIdCarteira();
+    double quantidadeFTCoins = mov.getQuantidade();
 
     try
     {
         sql::Driver *driver = sql::mariadb::get_driver_instance();
         std::shared_ptr<sql::Connection> conn(driver->connect(
             "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
-            "*******",                                    // Altere o usuário
-            "*******"));                                   // Altere a senha
+            "*******",                             // Altere o usuário
+            "*******"));                           // Altere a senha
 
         // Verifica se carteira existe
-        std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?")); // Usado stmntCheckCarteira para clareza
+        std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
         stmntCheckCarteira->setInt(0, idCarteira);
+        std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery());
 
-        std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery()); // Renomeado e envolvido em shared_ptr
-
-        if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0) // Usado resCheckCarteira
+        if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0)
         {
             cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
             return;
         }
 
         // Pega cotação mais recente
-        std::shared_ptr<sql::PreparedStatement> stmntCotacao(conn->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1")); // Usado stmntCotacao
-        std::shared_ptr<sql::ResultSet> resCotacao(stmntCotacao->executeQuery());                                                               // Usado resCotacao
+        std::shared_ptr<sql::PreparedStatement> stmntCotacao(conn->prepareStatement("SELECT Cotacao FROM ORACULO ORDER BY Data DESC LIMIT 1"));
+        std::shared_ptr<sql::ResultSet> resCotacao(stmntCotacao->executeQuery());
 
         double cotacao = 0;
         if (resCotacao->next())
@@ -185,28 +166,24 @@ void movimentacao::compraRemota()
             return;
         }
 
-        cout << "Cotação atual da FT Coin: R$ " << cotacao << endl;
-        cout << "Digite quanto deseja gastar em reais: R$ ";
-        cin >> valorReais;
-
-        if (valorReais <= 0)
+        if (quantidadeFTCoins <= 0)
         {
-            cout << "Valor inválido. Compra cancelada." << endl;
+            cout << "Quantidade inválida. Compra cancelada." << endl;
             return;
         }
 
-        double quantidade = valorReais / cotacao;
+        double valorTotalReais = quantidadeFTCoins * cotacao;
 
         // Registra a movimentação de compra
         std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
             "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
             "VALUES (?, CURDATE(), 'C', ?)"));
         stmntInsert->setInt(0, idCarteira);
-        stmntInsert->setDouble(1, quantidade);
+        stmntInsert->setDouble(1, quantidadeFTCoins);
         stmntInsert->executeUpdate();
 
         cout << "Compra registrada com sucesso!" << endl;
-        cout << "Você comprou " << quantidade << " FT Coins por R$ " << valorReais << endl;
+        cout << "Você comprou " << quantidadeFTCoins << " FT Coins por R$ " << valorTotalReais << endl;
     }
     catch (const sql::SQLException &e)
     {
@@ -214,29 +191,26 @@ void movimentacao::compraRemota()
     }
 }
 
-void movimentacao::vendaRemota()
+void movimentacaoDAO_Remoto::vendaRemota(const movimentacao &mov) // Recebe o DTO
 {
-    int idCarteira;
-    double quantidade;
-
-    cout << "Digite o ID da carteira que deseja vender: ";
-    cin >> idCarteira;
+    int idCarteira = mov.getIdCarteira();
+    double quantidadeFTCoins = mov.getQuantidade();
 
     try
     {
         sql::Driver *driver = sql::mariadb::get_driver_instance();
         std::shared_ptr<sql::Connection> conn(driver->connect(
             "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
-            "*******",                                    // Altere o usuário
-            "*******"));                                   // Altere a senha
+            "*******",                             // Altere o usuário
+            "*******"));                           // Altere a senha
+
 
         // Verifica se carteira existe
         std::shared_ptr<sql::PreparedStatement> stmntCheckCarteira(conn->prepareStatement("SELECT COUNT(*) AS total FROM CARTEIRA WHERE IdCarteira = ?"));
         stmntCheckCarteira->setInt(0, idCarteira);
+        std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery());
 
-        std::shared_ptr<sql::ResultSet> resCheckCarteira(stmntCheckCarteira->executeQuery()); // Renomeado e envolvido em shared_ptr
-
-        if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0) // Usado resCheckCarteira
+        if (!resCheckCarteira->next() || resCheckCarteira->getInt("total") == 0)
         {
             cout << "Carteira com ID " << idCarteira << " não encontrada." << endl;
             return;
@@ -257,26 +231,24 @@ void movimentacao::vendaRemota()
             return;
         }
 
-        cout << "Cotação atual da FT Coin: R$ " << cotacao << endl;
-        cout << "Digite quantas FT Coins deseja vender: ";
-        cin >> quantidade;
-
-        if (quantidade <= 0)
+        if (quantidadeFTCoins <= 0)
         {
             cout << "Quantidade inválida. Venda cancelada." << endl;
             return;
         }
+
+        double valorTotalReais = quantidadeFTCoins * cotacao;
 
         // Registra a movimentação de venda
         std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement(
             "INSERT INTO MOVIMENTACAO (IdCarteira, Data, TipoOperacao, Quantidade) "
             "VALUES (?, CURDATE(), 'V', ?)"));
         stmntInsert->setInt(0, idCarteira);
-        stmntInsert->setDouble(1, quantidade);
+        stmntInsert->setDouble(1, quantidadeFTCoins);
         stmntInsert->executeUpdate();
 
         cout << "Venda registrada com sucesso!" << endl;
-        cout << "Você vendeu " << quantidade << " FT Coins a R$ " << cotacao << " cada." << endl;
+        cout << "Você vendeu " << quantidadeFTCoins << " FT Coins a R$ " << valorTotalReais << " cada." << endl;
     }
     catch (const sql::SQLException &e)
     {

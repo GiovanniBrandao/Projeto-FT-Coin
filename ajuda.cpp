@@ -1,7 +1,7 @@
 #include <iostream>
 #include "ajuda.hpp"
 
-void mostrarAjuda()
+void extras::mostrarAjuda()
 {
     std::cout << R"(
 ====================================
@@ -26,7 +26,7 @@ Para mais informações, consulte a documentação.
 )";
 }
 
-void mostrarCreditos()
+void extras::mostrarCreditos()
 {
     std::cout << R"(
 ====================================

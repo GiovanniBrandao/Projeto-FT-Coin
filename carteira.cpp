@@ -162,7 +162,7 @@ void CarteiraDAO_Local::editarCarteira(int id, const std::string &novoTitular)
    std::rename("temp.txt", "carteira.txt");
 
    if (editadoComSucesso) // Verifica se a carteira foi encontrada e editada
-      std::cout << "Carteira editada com sucesso!" << std::endl;
+      std::cout << "Carteira editada com sucesso" << std::endl;
    else
       std::cout << "Carteira com ID " << id << " não encontrada." << std::endl;
 }
@@ -213,7 +213,7 @@ void CarteiraDAO_Local::excluirCarteira(int id)
    std::rename("temp.txt", "carteira.txt");
 
    if (encontrado)
-      std::cout << "Carteira com ID " << id << " foi excluída." << std::endl;
+      std::cout << "Carteira com ID " << id << " foi excluida." << std::endl;
    else
       std::cout << "Carteira com ID " << id << " não foi encontrada." << std::endl;
 }
@@ -227,6 +227,8 @@ void CarteiraDAO_Remoto::criarCarteira(const Carteira &carteira)
           "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
           "*******",                                    // Altere o usuário
           "*******"));                                   // Altere a senha
+
+      // Altere a senha
 
       // Preparar a inserção
       std::shared_ptr<sql::PreparedStatement> stmntInsert(conn->prepareStatement("INSERT INTO CARTEIRA (Titular, Corretora) VALUES (?, ?)"));

@@ -1,29 +1,22 @@
-#ifndef MOVIMENTO_H
-#define MOVIMENTO_H
+#ifndef MOVIMENTACAO_H
+#define MOVIMENTACAO_H
 
 #include <string>
 
 class movimentacao
 {
 private:
-    int idMovimento;            
+    int idMovimento;
     int idCarteira;
-    std::string dataOperacao; 
-    char tipoOperacao;       // 'C' ou 'V'
+    std::string dataOperacao;
+    char tipoOperacao; // 'C' ou 'V'
     double quantidade;
 
 public:
-
     movimentacao() : idMovimento(0), idCarteira(0), dataOperacao(""), tipoOperacao(' '), quantidade(0.0) {}
 
-
-    void compraLocal();
-    void vendaLocal();
-    void compraRemota();
-    void vendaRemota();
-
     void setIdCarteira(int id) { idCarteira = id; }
-    void setDataOperacao(const std::string& data) { dataOperacao = data; }
+    void setDataOperacao(const std::string &data) { dataOperacao = data; }
     void setTipoOperacao(char tipo) { tipoOperacao = tipo; }
     void setQuantidade(double qtde) { quantidade = qtde; }
 
@@ -33,6 +26,18 @@ public:
     double getQuantidade() const { return quantidade; }
 };
 
+class movimentacaoDAO_Local
+{
+    public: //"const" doesn't allow the "movimentacao" be changed by accident inside functions
+    void compraLocal(const movimentacao& mov);
+    void vendaLocal(const movimentacao& mov);
+};
 
+class movimentacaoDAO_Remoto
+{
+    public:
+    void compraRemota(const movimentacao& mov);
+    void vendaRemota(const movimentacao& mov);
+};
 
 #endif

@@ -10,13 +10,13 @@
 
 int main()
 {
-    if (MenuGravacao() == 1)
+    if (Interface::MenuGravacao() == 1)
     {
         int opcaoPrincipal = -1;
 
         while (opcaoPrincipal != 0)
         {
-            opcaoPrincipal = MenuPrincipal();
+            opcaoPrincipal = Interface::MenuPrincipal();
 
             switch (opcaoPrincipal)
             {
@@ -27,14 +27,16 @@ int main()
 
                 while (opcaoCarteira != 0)
                 {
-                    opcaoCarteira = MenuCarteira();
+                    opcaoCarteira = Interface::MenuCarteira();
 
                     switch (opcaoCarteira)
                     {
                     case 1:
                     {
                         std::string nomeTitular, corretora;
+                        std::cout << "----------------------------------" << std::endl;
                         std::cout << "Nome do titular: ";
+                        std::cout << "----------------------------------" << std::endl;
                         std::cin >> nomeTitular;
                         std::cout << "Corretora: ";
                         std::cin >> corretora;
@@ -71,11 +73,11 @@ int main()
                         std::string novoTitular;
                         std::cout << "Digite o ID da carteira que deseja editar: ";
                         std::cin >> idEditar;
-
+                        std::cout << "----------------------------------" << std::endl;
                         std::cout << "Digite o novo nome do titular: ";
                         std::cin.ignore(); // Limpa o buffer do teclado
                         std::getline(std::cin, novoTitular);
-
+                        std::cout << "----------------------------------" << std::endl;
                         dao.editarCarteira(idEditar, novoTitular);
                         std::cout << "Carteira editada." << std::endl;
                         break;
@@ -106,16 +108,49 @@ int main()
 
                 while (opcaoMov != 0)
                 {
-                    opcaoMov = MenuMovimentacao();
+                    opcaoMov = Interface::MenuMovimentacao();
 
                     switch (opcaoMov)
                     {
                     case 1:
-                        mov.compraLocal();
-                        break;
+                    {
+                        int idCarteira;
+                        double quantidade;
+
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> idCarteira;
+                        std::cout << "Digite a quantidade de FT Coins para comprar: ";
+                        std::cin >> quantidade;
+
+                        movimentacao novaMov;
+                        novaMov.setIdCarteira(idCarteira);
+                        novaMov.setQuantidade(quantidade);
+
+                        novaMov.setTipoOperacao('C');
+                        movimentacaoDAO_Local movLocal;
+                        movLocal.compraLocal(novaMov);
+                    }
+                    break;
                     case 2:
-                        mov.vendaLocal();
+                    {
+                        int idCarteira;
+                        double quantidade;
+
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> idCarteira;
+                        std::cout << "Digite a quantidade de FT Coins para vender: ";
+                        std::cin >> quantidade;
+
+                        movimentacao novaMov;
+                        novaMov.setIdCarteira(idCarteira);
+                        novaMov.setQuantidade(quantidade);
+
+                        novaMov.setTipoOperacao('V');
+                        movimentacaoDAO_Local movLocal;
+                        movLocal.vendaLocal(novaMov);
+
                         break;
+                    }
                     case 0:
                         break;
                     default:
@@ -130,7 +165,7 @@ int main()
                 int opcaoRel = -1;
                 while (opcaoRel != 0)
                 {
-                    opcaoRel = MenuRelatorios();
+                    opcaoRel = Interface::MenuRelatorios();
                     RelatorioLocal rel;
 
                     switch (opcaoRel)
@@ -171,15 +206,17 @@ int main()
                 int opcaoAjuda = -1;
                 while (opcaoAjuda != 0)
                 {
-                    opcaoAjuda = MenuAjuda();
+                    opcaoAjuda = Interface::MenuAjuda();
+
+                    extras ext;
 
                     switch (opcaoAjuda)
                     {
                     case 1:
-                        mostrarAjuda();
+                        ext.mostrarAjuda();
                         break;
                     case 2:
-                        mostrarCreditos();
+                        ext.mostrarCreditos();
                         break;
                     case 0:
                         break;
@@ -200,24 +237,23 @@ int main()
         }
     }
 
-    else if (MenuGravacao() == 2)
+    else if (Interface::MenuGravacao() == 2)
     {
         int opcaoPrincipal = -1;
 
         while (opcaoPrincipal != 0)
         {
-            opcaoPrincipal = MenuPrincipal();
+            opcaoPrincipal = Interface::MenuPrincipal();
 
             switch (opcaoPrincipal)
             {
-            case 1: // menu principal
+            case 1:
             {
                 int opcaoCarteira = -1;
-                CarteiraDAO_Remoto daoRemoto;
 
                 while (opcaoCarteira != 0)
                 {
-                    opcaoCarteira = MenuCarteira();
+                    opcaoCarteira = Interface::MenuCarteira();
 
                     switch (opcaoCarteira)
                     {
@@ -309,16 +345,50 @@ int main()
                 while (opcaoMov != 0)
                 {
 
-                    opcaoMov = MenuMovimentacao();
+                    opcaoMov = Interface::MenuMovimentacao();
 
                     switch (opcaoMov)
                     {
                     case 1:
-                        mov.compraRemota();
-                        break;
+                    {
+                        int idCarteira;
+                        double quantidade;
+
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> idCarteira;
+                        std::cout << "Digite a quantidade de FT Coins para comprar: ";
+                        std::cin >> quantidade;
+
+                        movimentacao novaMov;
+                        novaMov.setIdCarteira(idCarteira);
+                        novaMov.setQuantidade(quantidade);
+                        novaMov.setTipoOperacao('C');
+                        movimentacaoDAO_Remoto movRem;
+
+                        movRem.compraRemota(novaMov);
+                    }
+
+                    break;
                     case 2:
-                        mov.vendaRemota();
-                        break;
+                    {
+                        int idCarteira;
+                        double quantidade;
+
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> idCarteira;
+                        std::cout << "Digite a quantidade de FT Coins para vender: ";
+                        std::cin >> quantidade;
+
+                        movimentacao novaMov;
+                        novaMov.setIdCarteira(idCarteira);
+                        novaMov.setQuantidade(quantidade);
+                        novaMov.setTipoOperacao('C');
+                        movimentacaoDAO_Remoto movRem;
+
+                        movRem.vendaRemota(novaMov);
+                    }
+
+                    break;
                     case 0:
                         break;
                     default:
@@ -331,28 +401,44 @@ int main()
             case 3:
             {
                 int opcaoRel = -1;
+                RelatorioRemoto rel;
+
                 while (opcaoRel != 0)
                 {
-                    opcaoRel = MenuRelatorios();
-                    RelatorioLocal rel;
+                    opcaoRel = Interface::MenuRelatorios();
 
                     switch (opcaoRel)
                     {
                     case 1:
-
+                        rel.listarCarteirasPorId();
                         break;
                     case 2:
-
+                        rel.listarCarteirasPorNome();
                         break;
                     case 3:
-
+                    {
+                        int id;
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> id;
+                        rel.exibirSaldoCarteira(id);
                         break;
+                    }
                     case 4:
-
+                    {
+                        int id;
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> id;
+                        rel.exibirHistoricoCarteira(id);
                         break;
+                    }
                     case 5:
-
+                    {
+                        int id;
+                        std::cout << "Digite o ID da carteira: ";
+                        std::cin >> id;
+                        rel.exibirGanhoPerdaCarteira(id);
                         break;
+                    }
                     case 0:
                         break;
                     default:
@@ -361,21 +447,22 @@ int main()
                 }
                 break;
             }
-
             case 4:
             {
                 int opcaoAjuda = -1;
                 while (opcaoAjuda != 0)
                 {
-                    opcaoAjuda = MenuAjuda();
+                    opcaoAjuda = Interface::MenuAjuda();
+
+                    extras ext;
 
                     switch (opcaoAjuda)
                     {
                     case 1:
-                        mostrarAjuda();
+                        ext.mostrarAjuda();
                         break;
                     case 2:
-                        mostrarCreditos();
+                        ext.mostrarCreditos();
                         break;
                     case 0:
                         break;

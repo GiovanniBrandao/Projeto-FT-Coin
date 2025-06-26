@@ -1,45 +1,48 @@
-# FT Coin Wallet - Sistema de Gerenciamento de Carteiras e Movimentações
+# FT Coin Wallet - Virtual Currency Portfolio Management System
 
-## Descrição do Projeto
+## Project Description
 
-O **FT Coin Wallet** é um sistema desenvolvido em C++ para o gerenciamento de carteiras de criptomoedas fictícias ("FT Coins") e suas movimentações financeiras (compra e venda). O projeto oferece duas opções de persistência de dados: armazenamento local em arquivos de texto ou armazenamento remoto em um banco de dados MariaDB.
+The **FT Coin Wallet** is a C++ system designed for managing virtual cryptocurrency portfolios ("FT Coins") and their financial transactions (buying and selling). The project offers two data persistence options: local storage in text files or remote storage in a MariaDB database.
 
-Este sistema foi projetado com foco em demonstrar conceitos de Programação Orientada a Objetos (POO), persistência de dados (local e remota) e interação com banco de dados em C++.
+This system was developed with a focus on demonstrating Object-Oriented Programming (OOP) concepts, data persistence (local and remote), and database interaction in C++.
 
-Funcionalidades principais:
+Main functionalities include:
 
-* **Gerenciamento de Carteiras:** Criação, consulta, edição e exclusão de carteiras.
-* **Gerenciamento de Movimentações:** Registro de operações de compra e venda de FT Coins.
-* **Relatórios:** Visualização de carteiras ordenadas, saldo atual, histórico de movimentações e cálculo de ganho/perda por carteira.
-* **Armazenamento Flexível:** Escolha entre gravar dados localmente em arquivos `.txt` ou remotamente em um servidor MariaDB.
+* **Portfolio Management:** Creation, retrieval, editing, and deletion of portfolios.
+* **Transaction Management:** Recording of FT Coin purchase and sale operations.
+* **Reports:** Viewing portfolios ordered by ID or name, displaying current portfolio balance, transaction history, and calculating total profit/loss based on oracle quotes.
+* **Flexible Storage:** Choice between saving data locally in `.txt` files or remotely on a MariaDB server.
 
-## Requisitos
+## Requirements
 
-Esta aplicação é destinada a funcinar em ambientes Linux
-Para compilar e utilizar este projeto, você precisará da seguinte biblioteca em seu ambiente Linux (testado em Linux Mint 22, baseado em Ubuntu 24.04).
+This application is designed to run in Linux environments.
+To compile and use this project, you will need the following library in your Linux environment (tested on Linux Mint 22, based on Ubuntu 24.04).
 
-### Compilação:
+The project uses the `#include <mariadb/conncpp.hpp>` header, which is part of the **MariaDB Connector/C++** external library.
 
-* **MariaDB Connector/C++:** Biblioteca para conexão com o banco de dados MariaDB.
-    * O projeto foi testado com a versão `1.1.6`.
-    * Para instalar:
-        1.  Baixe o arquivo `.deb` compatível com sua distribuição do site oficial do MariaDB;
-        2.  Navegue até o diretório de download no terminal;
-        3.  Instale o pacote;
-        4.  Corrija possíveis dependências.
+### Compilation:
 
-### Utilização (para modo remoto):
+* **MariaDB Connector/C++:** A library for connecting to the MariaDB database.
+    * The project was tested with version `1.1.6`.
+    * To install:
+        1.  Download the compatible `.deb` file for your distribution from the official MariaDB website.
+        2.  Navigate to your download directory in the terminal.
+        3.  Install the package (e.g., `sudo dpkg -i mariadb-connector-cpp_1.1.6-1+maria~noble_amd64.deb`).
+        4.  Fix potential dependencies (e.g., `sudo apt install -f`).
 
-* **Servidor MariaDB:** Um servidor MariaDB acessível para o qual o sistema possa se conectar.
-    * **As credenciais de conexão ao banco de dados estão inseridas diretamente no código-fonte e devem ser alteradas pelo usuário.**
-    * Certifique-se de que o banco de dados e as tabelas necessárias (`CARTEIRA`, `MOVIMENTACAO`, `ORACULO`) existam e estejam configuradas corretamente.
-    * As tabelas devem utilizar o tipo de dados `decimal` para valores monetários e `varchar` para strings.
+### Usage (for remote mode):
 
-## Como Compilar e Executar
+* **MariaDB Server:** A MariaDB server accessible for the system to connect to.
+    * **Database connection credentials are directly embedded in the source code and must be modified by the user.**
+    * The project uses the standard port `3306` for MariaDB connections.
+    * Ensure that the database and the necessary tables (`CARTEIRA`, `MOVIMENTACAO`, `ORACULO`) exist and are correctly configured.
+    * Tables should use the `decimal` data type for monetary values and `varchar` for strings.
 
-1.  **Edite as Credenciais do Banco de Dados:**
-    Antes de compilar, você **deve** editar as credenciais do banco de dados no código-fonte.
-    Abra os seguintes arquivos e procure por linhas comentadas que indicam onde alterar o IP do servidor, nome do banco de dados, usuário e senha:
+## How to Compile and Execute
+
+1.  **Edit Database Credentials:**
+    Before compiling, you **must** edit the database credentials in the source code.
+    Open the following files and look for commented lines indicating where to change the server IP, database name, username, and password:
 
     * `ServerDBConnection.h`
     * `ServerDBConnection.cpp`
@@ -47,64 +50,81 @@ Para compilar e utilizar este projeto, você precisará da seguinte biblioteca e
     * `movimentacao.cpp`
     * `relatorio.cpp`
 
-    **Exemplo de como encontrar e alterar as credenciais:**
+    **Example of how to find and change the credentials:**
 
-    Em `carteira.cpp`, por exemplo, você encontrará blocos de código como este:
+    In `carteira.cpp`, for instance, you will find code blocks similar to this:
 
     ```cpp
     sql::Driver *driver = sql::mariadb::get_driver_instance();
     std::shared_ptr<sql::Connection> conn(driver->connect(
-        "jdbc:mariadb://*******:3306/*******", // Altere o IP/Porta/Nome do Banco
-        "*******",  // Altere o usuário
-        "*******")); // Altere a senha
+        "jdbc:mariadb://*******:3306/*******", // Change IP/Port/Database Name
+        "*******",  // Change username
+        "*******")); // Change password
     ```
-    Altere as strings com asteriscos para suas credenciais reais do banco de dados.
-    A porta utilizada no projeto foi a porta padrão para conexões em mariadb.
+    Change the strings with asterisks to your actual database credentials.
 
-
-3.  **Abra o terminal na pasta do projeto e compile o projeto:**
-    Utilize o `g++` com os seguintes arquivos e flags:
+2.  **Compile the Project using Makefile:**
+    Navigate to your project's folder in the terminal.
 
     ```bash
-    g++ main.cpp carteira.cpp movimentacao.cpp relatorio.cpp interface.cpp ajuda.cpp -o FTCoin -lmariadbcpp -lstdc++fs
+    cd /path/to/your/project
     ```
-    * `-o FTCoin`: Define o nome do executável de saída como `FTCoin`.
-    * `-lmariadbcpp`: Linka a biblioteca do MariaDB Connector/C++.
+    With the "Makefile" present, compilation is straightforward. In the terminal, type:
 
-    Se a compilação for bem-sucedida, um arquivo executável chamado `FTCoin` será criado no diretório do seu projeto.
+    ```bash
+    make
+    ```
+    The executable file will be created. Also, there'll be created ``.o`` (object) files for each ``.cpp`` for better compiling for the compilor.
 
-4.  **Execute o Programa:**
-    Para iniciar o sistema, execute o arquivo compilado:
+3.  **Execute the Program:**
+    To start the system, run the compiled executable:
 
     ```bash
     ./FTCoin
     ```
+    Upon launching, the program will ask you to choose between "Local" or "Remote" data saving mode.
 
-    Ao iniciar, o programa perguntará se você deseja usar a gravação "Local" ou "Remota".
+4.  **Alternative Manual Compilation:**
+
+    If you prefer to compile manually, use `g++` with the following files and flags:
+
+    ```bash
+    g++ main.cpp carteira.cpp movimentacao.cpp relatorio.cpp interface.cpp ajuda.cpp -o FTCoin -lmariadbcpp -lstdc++fs
+    ```
+    * `-o FTCoin`: Sets the output executable name as `FTCoin`.
+    * `-lmariadbcpp`: Links the MariaDB Connector/C++ library.
+    * `-lstdc++fs`: Links the C++17 filesystem library.
+
+    If compilation is successful, an executable file named `FTCoin` will be created in your project directory.
+
+5.  **Clean Generated Files:**
+    To remove the files generated by the compilation process (object files and the executable), use the command:
+
+    ```bash
+    make clean
+    ```
+
+## Code Structure (Overview)
+
+* `main.cpp`: Program entry point, handles selection of saving mode (local/remote) and menu navigation.
+* `interface.hpp`/`interface.cpp`: Contains functions to display system menus.
+* `carteira.hpp`/`carteira.cpp`: Defines the `Carteira` class and `CarteiraDAO_Local` and `CarteiraDAO_Remoto` classes for portfolio data persistence.
+* `movimentacao.hpp`/`movimentacao.cpp`: Defines the `movimentacao` class and its methods to record purchases and sales, with local and remote modes.
+* `relatorio.hpp`/`relatorio.cpp`: Defines `RelatorioLocal` and `RelatorioRemoto` classes to generate various reports on portfolios and transactions.
+* `oraculo.hpp`: Defines the `oraculo` class that simulates a quote oracle for FT Coin.
+* `ajuda.hpp`/`ajuda.cpp`: (Assuming they exist) Contains functions to display program help text and credits.
 
 ---
 
-## Estrutura do Código (Visão Geral)
+## Contribution and License
 
-* `main.cpp`: Ponto de entrada do programa, lida com a seleção do modo de gravação (local/remoto) e a navegação pelos menus.
-* `interface.hpp`/`interface.cpp`: Contém as funções para exibir os menus do sistema.
-* `carteira.hpp`/`carteira.cpp`: Define a classe `Carteira` e as classes `CarteiraDAO_Local` e `CarteiraDAO_Remoto` para persistência de dados de carteiras.
-* `movimentacao.hpp`/`movimentacao.cpp`: Define a classe `movimentacao` e seus métodos para registrar compras e vendas, com modos local e remoto.
-* `relatorio.hpp`/`relatorio.cpp`: Define as classes `RelatorioLocal` e `RelatorioRemoto` para gerar diversos relatórios sobre carteiras e movimentações.
-* `oraculo.hpp`: Define a classe `oraculo` que simula um oráculo de cotações para a FT Coin.
-* `ajuda.hpp`/`ajuda.cpp`: (Assumindo que existem) Contém funções para exibir informações de ajuda e créditos do projeto.
-
----
-
-## Contribuição e Licença
-
-Este projeto é parte de um trabalho acadêmico e não se destina a ser uma aplicação real. Sinta-se à vontade para analisar e aprender com o código.
+This project is part of an academic work and is not intended to be a real application. Feel free to analyze and learn from the code.
 
 **Copyright (C) 2024 Andre F. de Angelis (Professor)**
-**Desenvolvido por:**
+**Developed by:**
 
-- Giovanni da Silva Virginio Brandão
-- Murillo Martins Proveza
-- Nathan Damico Cardoso
-- Thomaz Henrique Pedro Miranda
-- Victor Hugo Silva
+* Giovanni da Silva Virginio Brandão
+* Murillo Martins Proveza
+* Nathan Damico Cardoso
+* Thomaz Henrique Pedro Miranda
+* Victor Hugo Silva
