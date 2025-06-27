@@ -28,20 +28,20 @@ public:
 
 class movimentacaoDAO_Local
 {
-    public:
-    void compraLocal(const movimentacao& mov);
-    void vendaLocal(const movimentacao& mov);
-    
-    private: 
-    static int gerarNovoIdMovimentoLocal_Helper(); 
+public:
+    void compraLocal(const movimentacao &mov);
+    void vendaLocal(const movimentacao &mov);
+
+private:
+    static int gerarNovoIdMovimentoLocal_Helper();
     static std::string obterDataAtualFormatada_Helper();
 };
 
 class movimentacaoDAO_Remoto
 {
-    public:
-    void compraRemota(const movimentacao& mov);
-    void vendaRemota(const movimentacao& mov);
+public:
+    void compraRemota(const movimentacao &mov);
+    void vendaRemota(const movimentacao &mov);
 };
 
 #endif
