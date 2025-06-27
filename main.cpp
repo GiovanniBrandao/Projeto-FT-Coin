@@ -163,7 +163,7 @@ int main()
                 while (opcaoRel != 0)
                 {
                     opcaoRel = Interface::MenuRelatorios();
-                    RelatorioLocal rel;
+                    RelatorioDAO_Local rel;
 
                     switch (opcaoRel)
                     {
@@ -398,7 +398,7 @@ int main()
             case 3:
             {
                 int opcaoRel = -1;
-                RelatorioRemoto rel;
+                RelatorioDAO_Remoto rel;
 
                 while (opcaoRel != 0)
                 {

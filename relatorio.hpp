@@ -1,7 +1,7 @@
 #ifndef RELATORIO_HPP
 #define RELATORIO_HPP
 
-class RelatorioLocal
+class RelatorioDAO_Local
 {
 public:
     void listarCarteirasPorId();
@@ -11,7 +11,7 @@ public:
     void exibirGanhoPerdaCarteira(int idCarteira);
 };
 
-class RelatorioRemoto
+class RelatorioDAO_Remoto
 {
 public:
     void listarCarteirasPorId();

@@ -29,7 +29,7 @@ shared_ptr<sql::Connection> conectarMariaDB()
           "*******")); // senha
 }
 
-void RelatorioLocal::listarCarteirasPorId()
+void RelatorioDAO_Local::listarCarteirasPorId()
 {
     ifstream file("carteira.txt");
     if (!file)
@@ -69,7 +69,7 @@ void RelatorioLocal::listarCarteirasPorId()
     }
 }
 
-void RelatorioLocal::listarCarteirasPorNome()
+void RelatorioDAO_Local::listarCarteirasPorNome()
 {
     ifstream file("carteira.txt");
     if (!file)
@@ -109,7 +109,7 @@ void RelatorioLocal::listarCarteirasPorNome()
     }
 }
 
-void RelatorioLocal::exibirSaldoCarteira(int idCarteira)
+void RelatorioDAO_Local::exibirSaldoCarteira(int idCarteira)
 {
     ifstream file("movimentacoes.txt");
     if (!file)
@@ -140,7 +140,7 @@ void RelatorioLocal::exibirSaldoCarteira(int idCarteira)
     cout << "\nSaldo atual da carteira " << idCarteira << ": " << saldo << " FT Coins\n";
 }
 
-void RelatorioLocal::exibirHistoricoCarteira(int idCarteira)
+void RelatorioDAO_Local::exibirHistoricoCarteira(int idCarteira)
 {
     ifstream file("movimentacoes.txt");
     if (!file)
@@ -161,7 +161,7 @@ void RelatorioLocal::exibirHistoricoCarteira(int idCarteira)
     }
 }
 
-void RelatorioLocal::exibirGanhoPerdaCarteira(int idCarteira)
+void RelatorioDAO_Local::exibirGanhoPerdaCarteira(int idCarteira)
 {
     ifstream file("movimentacoes.txt");
     if (!file)
@@ -204,7 +204,7 @@ void RelatorioLocal::exibirGanhoPerdaCarteira(int idCarteira)
     cout << "\nGanho/Perda da carteira " << idCarteira << ": R$ " << lucro << endl;
 }
 
-void RelatorioRemoto::listarCarteirasPorId()
+void RelatorioDAO_Remoto::listarCarteirasPorId()
 {
     try
     {
@@ -226,7 +226,7 @@ void RelatorioRemoto::listarCarteirasPorId()
     }
 }
 
-void RelatorioRemoto::listarCarteirasPorNome()
+void RelatorioDAO_Remoto::listarCarteirasPorNome()
 {
     try
     {
@@ -248,7 +248,7 @@ void RelatorioRemoto::listarCarteirasPorNome()
     }
 }
 
-void RelatorioRemoto::exibirSaldoCarteira(int idCarteira)
+void RelatorioDAO_Remoto::exibirSaldoCarteira(int idCarteira)
 {
     try
     {
@@ -277,7 +277,7 @@ void RelatorioRemoto::exibirSaldoCarteira(int idCarteira)
     }
 }
 
-void RelatorioRemoto::exibirHistoricoCarteira(int idCarteira)
+void RelatorioDAO_Remoto::exibirHistoricoCarteira(int idCarteira)
 {
     try
     {
@@ -301,7 +301,7 @@ void RelatorioRemoto::exibirHistoricoCarteira(int idCarteira)
     }
 }
 
-void RelatorioRemoto::exibirGanhoPerdaCarteira(int idCarteira)
+void RelatorioDAO_Remoto::exibirGanhoPerdaCarteira(int idCarteira)
 {
     try
     {
